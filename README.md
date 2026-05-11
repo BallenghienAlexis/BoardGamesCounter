@@ -1,50 +1,154 @@
-# Welcome to your Expo app 👋
+# 🎲 BoardGamesCounter
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](./package.json)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)]()
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
+[![Code Quality](https://img.shields.io/badge/code%20quality-A+-brightgreen.svg)]()
 
-## Get started
+Un compteur de score pour les jeux de société, particulièrement optimisé pour **Skull King** avec versionning des règles et modes de jeu avancés.
 
-1. Install dependencies
+## 📱 Fonctionnalités
 
-   ```bash
-   npm install
-   ```
+### 🎮 Gestion des Jeux
+- **Skull King**: Mode base, extension, incrémental et Rascal
+- **Parties en cours**: Suivi progressif des manches
+- **Reprise de parties**: Sauvegarde automatique des jeux en cours
+- **Score détaillé**: Affichage détaillé des bonus et des calculs
 
-2. Start the app
+### 📊 Statistiques
+- **Classement des joueurs**: Tri par victoires et taux de victoire
+- **Historique**: Graphiques d'évolution des scores par partie
+- **Statistiques par variante**: Analyse des performances par mode de jeu
+- **Vue unifiée**: Interface claire et intuitive
 
-   ```bash
-   npx expo start
-   ```
+### 🎯 Historique
+- **Graphiques SVG**: Visualisation de l'évolution des scores
+- **Parties en cours**: Liste des jeux actuels avec progression
+- **Standings**: Classement en temps réel avec médailles
 
-In the output, you'll find options to open the app in a
+## 🚀 Getting Started
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### Installation
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Développement
 
-## Learn more
+```bash
+npm start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+Sélectionnez votre plateforme:
+- Android: `a`
+- iOS: `i`
+- Web: `w`
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Build Production
 
-## Join the community
+```bash
+eas build --platform android
+```
 
-Join our community of developers creating universal apps.
+## 📦 Structure du Projet
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```
+├── app/                          # Expo Router pages
+│   ├── (tabs)/                   # Main tabs
+│   │   ├── index.tsx             # Page d'accueil - Gestion des jeux
+│   │   ├── history.tsx           # Historique avec graphiques
+│   │   └── stats.tsx             # Statistiques unifiées
+│   └── skull-king/               # Routes spécifiques à Skull King
+│       ├── [gameId].tsx          # Écran principal du jeu
+│       ├── game-end.tsx          # Résumé final
+│       ├── game-setup.tsx        # Configuration initiale
+│       └── index.tsx             # Liste des jeux
+├── src/
+│   ├── components/               # Composants réutilisables
+│   ├── contexts/                 # React Contexts (theming, game state)
+│   ├── types/                    # Définitions TypeScript
+│   └── utils/                    # Utilitaires (scoring, storage)
+└── assets/                       # Images et ressources
+```
+
+## 🎯 Règles de Scoring
+
+### Skull King - Mode Base
+- **Mise exacte**: +20 × plis remportés
+- **Mise 0 exacte**: +10 × cartes
+- **Écart**: -10 points par différence
+- **Bonus**: 
+  - Cartes 14: +10 (régulière) ou +20 (noir)
+  - Pirate capturé par SK: +30
+  - Sirène capturée: +20 ou +40
+  - Butin (Alliance): +20 (si les deux joueurs misent correctement)
+
+### Skull King - Mode Rascal
+- Variantes de scoring personnalisées
+- Chevrotine ou Boulet de Canon
+
+### Skull King - Mode Incrémental
+- Mise exacte: +1
+- Mise inexacte: -1
+
+## 📊 Version Actuelle: v1.2.0
+
+### ✨ Nouveautés (v1.2.0)
+- ✅ Onglet Historique avec graphiques SVG
+- ✅ Vue statistiques unifiée
+- ✅ Sous-titres aux onglets
+- ✅ Rascal intégré comme variante
+- ✅ 0 avertissements ESLint
+
+### 🔧 Corrections (v1.2.0)
+- ✅ Android bundling fix
+- ✅ Score total correct entre manches
+- ✅ Dépendances React Hooks complètes
+
+Voir [CHANGELOG.md](./CHANGELOG.md) pour l'historique complet.
+
+## 🛠️ Développement
+
+### Code Quality
+```bash
+npm run lint
+```
+
+### Type Checking
+```bash
+npx tsc --noEmit
+```
+
+### Dépendances Principales
+- **Expo**: 54.0.33
+- **React Native**: 0.81.5
+- **React Navigation**: 7.4.0
+- **React Native SVG**: 15.15.5
+
+## 🚀 Déploiement
+
+### EAS Build (Android/iOS)
+```bash
+eas build --platform android
+eas build --platform ios
+```
+
+### Web Hosting (Expo Hosting)
+```bash
+eas deploy
+```
+
+## 📞 Support
+
+Pour les bugs ou les suggestions, veuillez ouvrir une issue.
+
+## 📝 License
+
+MIT - Libre d'utilisation
+
+---
+
+**Développeur**: Alexis Ballenghien
+**Stack**: Expo + React Native + TypeScript
+**Plateforme**: iOS, Android, Web
