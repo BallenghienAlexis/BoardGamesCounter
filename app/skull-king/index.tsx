@@ -72,7 +72,7 @@ export default function SkullKingHomeScreen() {
          ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
          : gameMode === 'rascal'
          ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-         : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
+         : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], // base-extension: same as base
        includeKraken: gameMode === 'base-extension',
        includeWhaleWhite: gameMode === 'base-extension',
        includePiratesPowers: false,
