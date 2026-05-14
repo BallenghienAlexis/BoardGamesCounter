@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
@@ -40,6 +41,9 @@ export function GameTypeSelector({ onSelectType }: GameTypeSelectorProps) {
 
   const styles = StyleSheet.create({
     container: {
+      flex: 1,
+    },
+    scroll: {
       flex: 1,
     },
     scrollContent: {
@@ -87,8 +91,9 @@ export function GameTypeSelector({ onSelectType }: GameTypeSelectorProps) {
   });
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.scrollContent}>
+    <SafeAreaView style={styles.container}>
+      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+        <View style={styles.scrollContent}>
         {gameTypes.map(type => (
           <TouchableOpacity
             key={type.id}
@@ -106,8 +111,9 @@ export function GameTypeSelector({ onSelectType }: GameTypeSelectorProps) {
             </View>
           </TouchableOpacity>
         ))}
-      </View>
-    </ScrollView>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 

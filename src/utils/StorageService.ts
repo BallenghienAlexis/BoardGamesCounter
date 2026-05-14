@@ -52,19 +52,19 @@ class StorageService {
     }
   }
 
-  async getAllKeys(): Promise<string[]> {
-    try {
-      if (this.useMemoryFallback) {
-        return Object.keys(memoryStorage);
-      }
-      const keys = await AsyncStorage.getAllKeys();
-      return keys;
-    } catch (error) {
-      console.warn('[StorageService] Failed to get all keys:', error);
-      this.useMemoryFallback = true;
-      return Object.keys(memoryStorage);
-    }
-  }
+   async getAllKeys(): Promise<string[]> {
+     try {
+       if (this.useMemoryFallback) {
+         return Object.keys(memoryStorage);
+       }
+       const keys = await AsyncStorage.getAllKeys();
+       return [...keys];
+     } catch (error) {
+       console.warn('[StorageService] Failed to get all keys:', error);
+       this.useMemoryFallback = true;
+       return Object.keys(memoryStorage);
+     }
+   }
 
   async clear(): Promise<void> {
     try {

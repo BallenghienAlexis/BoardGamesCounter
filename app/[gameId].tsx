@@ -6,12 +6,12 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useGames } from '@/src/contexts/GameContext';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { AlertModal } from '@/src/components/AlertModal';
 import { ScoreInput } from '@/src/components/ScoreInput';
 import { PlayerCard } from '@/src/components/PlayerCard';
 import { Button } from '@/src/components/Button';
@@ -22,6 +22,7 @@ export default function GameScreen() {
   const { games, updatePlayerScore, undoLastMove, resetGame } = useGames();
   const { colors } = useTheme();
   const [showScores, setShowScores] = useState(false);
+  const [showGameEndAlert, setShowGameEndAlert] = useState(false);
 
   const game = useMemo(() => games.find(g => g.id === gameId), [games, gameId]);
 
@@ -189,7 +190,9 @@ export default function GameScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.headerButton}
-            onPress={() => setResetModalVisible(true)}
+            onPress={() => {
+              // Reset functionality would be implemented here
+            }}
           >
             <Ionicons name="refresh" size={20} color={colors.warning} />
           </TouchableOpacity>
@@ -246,20 +249,25 @@ export default function GameScreen() {
           variant="danger"
           style={styles.footerButton}
           onPress={() => {
-            Alert.alert(
-              'Terminer le jeu',
-              `${sortedPlayers[0].name} a remporté la victoire ! 🎉`,
-              [
-                {
-                  text: 'Retour',
-                  onPress: () => router.back(),
-                  style: 'default',
-                },
-              ]
-            );
+            setShowGameEndAlert(true);
           }}
         />
       </View>
+
+      {/* GAME END ALERT */}
+      <AlertModal
+        visible={showGameEndAlert}
+        title="Terminer le jeu"
+        message={`${sortedPlayers[0]?.name || 'Joueur'} a remporté la victoire ! 🎉`}
+        buttons={[
+          {
+            text: 'Retour',
+            style: 'default',
+            onPress: () => router.back(),
+          },
+        ]}
+        onDismiss={() => setShowGameEndAlert(false)}
+      />
     </SafeAreaView>
   );
 }

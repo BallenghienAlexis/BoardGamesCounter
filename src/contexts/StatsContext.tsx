@@ -19,11 +19,6 @@ export function StatsProvider({ children }: { children: ReactNode }) {
   const [stats, setStats] = useState<OverallStats | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Load stats on mount
-  useEffect(() => {
-    loadStats();
-  }, []);
-
   const loadStats = useCallback(async () => {
     setLoading(true);
     try {
@@ -35,6 +30,11 @@ export function StatsProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     }
   }, []);
+
+  // Load stats on mount
+  useEffect(() => {
+    loadStats();
+  }, [loadStats]);
 
   const recordGameResult = useCallback(
     async (gameId: string, gameMode: GameMode, playerResults: PlayerGameResult[]) => {

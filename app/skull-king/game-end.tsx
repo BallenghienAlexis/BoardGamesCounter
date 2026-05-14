@@ -1,32 +1,56 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
-  TouchableOpacity,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '../../../src/contexts/ThemeContext';
-import { useSkullKingGame } from '../../../src/contexts/SkullKingContext';
-import { Button } from '../../../src/components/Button';
+import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { useSkullKingGame } from '@/src/contexts/SkullKingContext';
+import { useStats } from '@/src/contexts/StatsContext';
+import { Button } from '@/src/components/Button';
+import { PageHeader } from '@/src/components/PageHeader';
+import type { PlayerGameResult } from '@/src/types/Stats';
 
 export default function GameEndScreen() {
-  const { gameId } = useLocalSearchParams<{ gameId: string }>();
   const router = useRouter();
   const { colors } = useTheme();
-  const { gameState } = useSkullKingGame();
+  const { gameState, resetGameWithSamePlayers } = useSkullKingGame();
+  const { recordGameResult } = useStats();
+  const insets = useSafeAreaInsets();
 
-  const sortedPlayers = useMemo(() => {
-    if (!gameState) return [];
-    return [...gameState.players].sort((a, b) => {
-      const scoreA = gameState.playerScores[a.id] || 0;
-      const scoreB = gameState.playerScores[b.id] || 0;
-      return scoreB - scoreA;
-    });
-  }, [gameState]);
+   const sortedPlayers = useMemo(() => {
+     if (!gameState) return [];
+     return [...gameState.players]
+       .filter(p => !p.id.includes('ghost')) // Filter out ghost player
+       .sort((a, b) => {
+         const scoreA = gameState.playerScores[a.id] || 0;
+         const scoreB = gameState.playerScores[b.id] || 0;
+         return scoreB - scoreA;
+       });
+   }, [gameState]);
+
+   // Enregistrer les résultats de la partie quand la page est chargée
+   useEffect(() => {
+     if (gameState && sortedPlayers.length > 0) {
+       const playerResults: PlayerGameResult[] = sortedPlayers.map((player, idx) => ({
+         playerId: player.id,
+         playerName: player.name,
+         finalScore: gameState.playerScores[player.id] || 0,
+         rank: idx + 1,
+         isWinner: idx === 0, // Premier joueur est le gagnant
+         gameMode: gameState.config.mode,
+         timestamp: new Date().toISOString(),
+         gameId: gameState.gameId,
+       }));
+
+       recordGameResult(gameState.gameId, gameState.config.mode, playerResults).catch(
+         error => console.warn('Could not record game result:', error)
+       );
+     }
+   }, [gameState, sortedPlayers, recordGameResult]);
 
   if (!gameState) {
     return null;
@@ -36,26 +60,6 @@ export default function GameEndScreen() {
     container: {
       flex: 1,
       backgroundColor: colors.background,
-    },
-    header: {
-      paddingHorizontal: 16,
-      paddingVertical: 20,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-      backgroundColor: colors.surface,
-      alignItems: 'center',
-    },
-    title: {
-      fontSize: 32,
-      fontWeight: '700',
-      color: colors.text,
-      fontFamily: 'Poppins_700Bold',
-      marginBottom: 8,
-    },
-    subtitle: {
-      fontSize: 14,
-      color: colors.textSecondary,
-      fontFamily: 'Poppins_400Regular',
     },
     content: {
       flex: 1,
@@ -149,11 +153,8 @@ export default function GameEndScreen() {
   });
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>🎉 Partie Terminée</Text>
-        <Text style={styles.subtitle}>Bravo à tous les pirates!</Text>
-      </View>
+    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+      <PageHeader title="🎉 Partie Terminée" subtitle="Bravo à tous les pirates!" size="large" />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {sortedPlayers.length > 0 && (
@@ -179,19 +180,25 @@ export default function GameEndScreen() {
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
-        <Button
-          title="Nouvelle Partie"
-          variant="primary"
-          onPress={() => router.replace('/(tabs)')}
-        />
-        <Button
-          title="Retour à l'Accueil"
-          variant="secondary"
-          onPress={() => router.replace('/(tabs)')}
-        />
-      </View>
-    </SafeAreaView>
+       <View style={styles.footer}>
+         <Button
+           title="Nouvelle Partie"
+           variant="primary"
+           onPress={() => {
+             resetGameWithSamePlayers();
+             router.replace('/skull-king/game-setup');
+           }}
+         />
+         <Button
+           title="Retour à l'Accueil"
+           variant="secondary"
+           onPress={() => router.replace('/(tabs)')}
+         />
+       </View>
+    </View>
   );
 }
+
+
+
 

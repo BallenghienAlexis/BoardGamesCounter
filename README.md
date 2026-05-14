@@ -106,8 +106,6 @@ eas build --platform android
 - ✅ Score total correct entre manches
 - ✅ Dépendances React Hooks complètes
 
-Voir [CHANGELOG.md](./CHANGELOG.md) pour l'historique complet.
-
 ## 🛠️ Développement
 
 ### Code Quality

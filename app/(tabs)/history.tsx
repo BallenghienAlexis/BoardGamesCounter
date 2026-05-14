@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,22 +10,18 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useSkullKingGame } from '@/src/contexts/SkullKingContext';
-import { LineChart } from 'react-native-chart-kit';
 import { PageHeader } from '@/src/components/PageHeader';
 import { Ionicons } from '@expo/vector-icons';
+import Svg, { Line, Circle, Text as SvgText } from 'react-native-svg';
 
 export default function HistoryScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const { gameState, getUnfinishedGames } = useSkullKingGame();
+  const { getUnfinishedGames } = useSkullKingGame();
   const [unfinishedGames, setUnfinishedGames] = useState<any[]>([]);
   const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadGames();
-  }, []);
-
-  const loadGames = async () => {
+  const loadGames = useCallback(async () => {
     try {
       const games = await getUnfinishedGames();
       setUnfinishedGames(games);
@@ -35,7 +31,11 @@ export default function HistoryScreen() {
     } catch (error) {
       console.warn('Could not load games:', error);
     }
-  };
+  }, [getUnfinishedGames]);
+
+  useEffect(() => {
+    loadGames();
+  }, [loadGames]);
 
   const selectedGame = unfinishedGames.find(g => g.gameId === selectedGameId);
 
@@ -149,30 +149,138 @@ export default function HistoryScreen() {
       return null;
     }
 
-    const roundLabels = game.rounds.map((_, idx) => `M${idx + 1}`);
-    const datasets = game.players
+     const playerData: Record<string, { x: number; y: number }[]> = {};
+
+    // Build dataset for each player
+    game.players
       .filter((p: any) => !p.id.includes('ghost'))
-      .map((player: any) => {
-        const data: number[] = [];
+      .forEach((player: any) => {
+        const data: { x: number; y: number }[] = [];
         let cumulativeScore = 0;
 
-        game.rounds.forEach((round: any) => {
+        game.rounds.forEach((round: any, idx: number) => {
           cumulativeScore += round.roundScores[player.id] || 0;
-          data.push(cumulativeScore);
+          data.push({
+            x: idx,
+            y: cumulativeScore,
+          });
         });
 
-        return {
-          data,
-          strokeWidth: 2,
-          color: () => colors.primary,
-          label: player.name,
-        };
+        playerData[player.id] = data;
       });
 
-    return {
-      labels: roundLabels,
-      datasets: datasets,
-    };
+    return playerData;
+  };
+
+  const SimpleLineChart = ({
+    data,
+    width = 300,
+    height = 200,
+    playerName = ""
+  }: {
+    data: { x: number; y: number }[];
+    width?: number;
+    height?: number;
+    playerName?: string;
+  }) => {
+    if (!data || data.length === 0) return null;
+
+    const padding = 30;
+    const chartWidth = width - padding * 2;
+    const chartHeight = height - padding * 2;
+
+    // Find min/max values
+    const maxX = Math.max(...data.map(d => d.x)) + 1;
+    const maxY = Math.max(...data.map(d => d.y), 1) * 1.1; // Add 10% padding
+
+    // Convert data to screen coordinates
+    const points = data.map(d => ({
+      screenX: padding + (d.x / maxX) * chartWidth,
+      screenY: height - padding - (d.y / maxY) * chartHeight,
+    }));
+
+    return (
+      <View style={{ alignItems: 'center', marginVertical: 16 }}>
+        <Svg width={width} height={height} style={{ backgroundColor: colors.surface, borderRadius: 8 }}>
+          {/* Grid lines */}
+          {[0, 1, 2, 3, 4].map(i => (
+            <Line
+              key={`hline-${i}`}
+              x1={padding}
+              y1={padding + (i * chartHeight / 4)}
+              x2={width - padding}
+              y2={padding + (i * chartHeight / 4)}
+              stroke={colors.border}
+              strokeWidth="1"
+              strokeDasharray="4,4"
+            />
+          ))}
+
+          {/* Axes */}
+          <Line
+            x1={padding}
+            y1={padding}
+            x2={padding}
+            y2={height - padding}
+            stroke={colors.textSecondary}
+            strokeWidth="2"
+          />
+          <Line
+            x1={padding}
+            y1={height - padding}
+            x2={width - padding}
+            y2={height - padding}
+            stroke={colors.textSecondary}
+            strokeWidth="2"
+          />
+
+          {/* Line chart */}
+          {points.map((point, idx) => {
+            if (idx === points.length - 1) return null;
+            const nextPoint = points[idx + 1];
+            return (
+              <Line
+                key={`line-${idx}`}
+                x1={point.screenX}
+                y1={point.screenY}
+                x2={nextPoint.screenX}
+                y2={nextPoint.screenY}
+                stroke={colors.primary}
+                strokeWidth="3"
+              />
+            );
+          })}
+
+          {/* Data points */}
+          {points.map((point, idx) => (
+            <Circle
+              key={`dot-${idx}`}
+              cx={point.screenX}
+              cy={point.screenY}
+              r="4"
+              fill={colors.primary}
+            />
+          ))}
+
+          {/* Y-axis labels */}
+          {[0, 1, 2, 3, 4].map(i => {
+            const value = Math.round((maxY / 4) * i);
+            return (
+              <SvgText
+                key={`ylabel-${i}`}
+                x={padding - 5}
+                y={height - padding - (i * chartHeight / 4) + 3}
+                fontSize="10"
+                fill={colors.textSecondary}
+                textAnchor="end"
+              >
+                {value}
+              </SvgText>
+            );
+          })}
+        </Svg>
+      </View>
+    );
   };
 
   const chartData = selectedGame ? buildChartData(selectedGame) : null;
@@ -217,43 +325,26 @@ export default function HistoryScreen() {
               </View>
             </View>
 
-            {selectedGame && chartData && (
-              <>
-                <View style={styles.section}>
-                  <Text style={styles.chartTitle}>📈 Évolution des Scores</Text>
-                  <View style={styles.chartContainer}>
-                    <LineChart
-                      data={chartData}
-                      width={screenWidth}
-                      height={220}
-                      chartConfig={{
-                        backgroundColor: colors.surface,
-                        backgroundGradientFrom: colors.surface,
-                        backgroundGradientTo: colors.surface,
-                        decimalPlaces: 0,
-                        color: () => colors.primary,
-                        labelColor: () => colors.textSecondary,
-                        style: {
-                          borderRadius: 12,
-                        },
-                        propsForDots: {
-                          r: '4',
-                          strokeWidth: '2',
-                          stroke: colors.primary,
-                        },
-                        propsForBackgroundLines: {
-                          strokeDasharray: '0',
-                          stroke: colors.border,
-                          strokeWidth: 1,
-                        },
-                      }}
-                      style={{
-                        marginVertical: 8,
-                        borderRadius: 12,
-                      }}
-                    />
-                  </View>
-                </View>
+             {selectedGame && chartData && (
+               <>
+                 <View style={styles.section}>
+                   <Text style={styles.chartTitle}>📈 Évolution des Scores</Text>
+                   <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chartContainer}>
+                     {Object.entries(chartData).map(([playerId, data]) => {
+                       const player = selectedGame.players.find((p: any) => p.id === playerId);
+                       return (
+                         <View key={playerId} style={{ marginRight: 16, alignItems: 'center' }}>
+                           <Text style={[styles.statLabel, { marginBottom: 8 }]}>{player?.name}</Text>
+                           <SimpleLineChart
+                             data={data as any}
+                             width={Math.min(screenWidth - 40, 250)}
+                             height={180}
+                           />
+                         </View>
+                       );
+                     })}
+                   </ScrollView>
+                 </View>
 
                 <View style={styles.section}>
                   <Text style={styles.chartTitle}>📊 État Actuel</Text>

@@ -1,4 +1,7 @@
 // Skull King Game Configuration & Rules
+import type { RoundBonus, TreasureAllianceBonus } from '../types/SkullKing';
+
+export { RoundBonus, TreasureAllianceBonus };
 
 export const SKULL_KING_ROUNDS = 10;
 
@@ -23,6 +26,12 @@ export const SKULL_KING_GAME_MODES = {
     description: 'Scoring simplifié: +1/-1 par mise correcte/échouée',
     includeExtensions: false,
   },
+  rascal: {
+    id: 'rascal',
+    name: 'Mode Rascal',
+    description: 'Système équilibré où tous ont le même potentiel',
+    includeExtensions: false,
+  },
 };
 
 export const SCORING_SYSTEMS = {
@@ -38,35 +47,101 @@ export const SCORING_SYSTEMS = {
   },
 };
 
-// Skull King Scoring Functions
+/**
+ * Calculate treasure alliance bonus points
+ * Verifies that both players (who played and who won the treasure) have correct bets
+ */
+export function calculateTreasureAllianceBonus(
+  playerId: string,
+  alliances: TreasureAllianceBonus[] | number,
+  playerBets: Record<string, number>,
+  playerTricks: Record<string, number>
+): number {
+  // If alliances is just a number (count), return 0
+  // This will be improved when UI is updated to select specific players
+  if (typeof alliances === 'number') {
+    return 0; // Safe default - will be improved when UI is updated
+  }
+
+  let totalBonus = 0;
+
+  alliances.forEach((alliance) => {
+    // Get the other player involved
+    const otherPlayerId = alliance.playedBy === playerId ? alliance.wonBy : alliance.playedBy;
+    const otherPlayerBet = playerBets[otherPlayerId];
+    const otherPlayerTricks = playerTricks[otherPlayerId];
+
+    // Check if the other player has correct bet
+    const otherPlayerCorrect =
+      (otherPlayerBet === 0 && otherPlayerTricks === 0) ||
+      (otherPlayerBet > 0 && otherPlayerBet === otherPlayerTricks);
+
+    if (otherPlayerCorrect) {
+      totalBonus += 20; // +20 for each valid alliance
+    }
+  });
+
+  return totalBonus;
+};
+
 export function calculateSkullKingScore(
   bet: number,
   tricksWon: number,
   cardsDistributed: number,
-  bonusPoints: number = 0
-): { scoreFromBet: number; totalScore: number } {
-  let scoreFromBet = 0;
+  bonuses: Partial<RoundBonus> = {},
+  isExtension: boolean = false,
+  playerId?: string,
+  playerBets?: Record<string, number>,
+  playerTricks?: Record<string, number>
+): { miseScore: number; bonusScore: number; totalScore: number } {
+  let miseScore = 0;
 
+  // Calcul des points de mise
   if (bet === 0) {
     if (tricksWon === 0) {
       // Mise sur 0 réussie: +10 × cartes distribuées
-      scoreFromBet = 10 * cardsDistributed;
+      miseScore = 10 * cardsDistributed;
     } else {
       // Mise sur 0 échouée: -10 × cartes distribuées
-      scoreFromBet = -10 * cardsDistributed;
+      miseScore = -10 * cardsDistributed;
     }
   } else {
     if (tricksWon === bet) {
       // Mise exacte: +20 × nombre de plis
-      scoreFromBet = 20 * bet;
+      miseScore = 20 * bet;
     } else {
       // Écart: -10 × |différence|
-      scoreFromBet = -10 * Math.abs(tricksWon - bet);
+      miseScore = -10 * Math.abs(tricksWon - bet);
     }
   }
 
-  const totalScore = scoreFromBet + bonusPoints;
-  return { scoreFromBet, totalScore };
+  // Calcul des points bonus
+  // ⚠️ IMPORTANT: Les bonus s'appliquent INDÉPENDAMMENT de la mise (sauf le butin qui a sa propre logique)
+  let bonusScore = 0;
+
+  // Bonus simples (ne dépendent pas de la mise exacte)
+  bonusScore += (bonuses.card14Regular || 0) * 10; // +10 par carte 14 régulière
+  bonusScore += (bonuses.card14Black || 0) * 20; // +20 pour le 14 noir
+  bonusScore += (bonuses.sirenCapturedByPirate || 0) * 20; // +20 par sirène capturée par pirate
+  bonusScore += (bonuses.pirateCapturedBySkullKing || 0) * 30; // +30 par pirate capturé par SK
+  bonusScore += (bonuses.sirenCapturedSkullKing || 0) * 40; // +40 si sirène capture SK
+
+  // Bonus extension (ne dépendent pas de la mise exacte non plus)
+  if (isExtension) {
+    bonusScore += (bonuses.secondCaptured || 0) * 30; // +30 si SK ou Sirène capture le Second
+    bonusScore += (bonuses.davyJonesCasketCount || 0) * 20; // +20 per léviathan détruit
+    bonusScore += (bonuses.eightCardBonus || 0) * 5; // +5 per 8 won
+    bonusScore -= (bonuses.sevenCardBonus || 0) * 5; // -5 per 7 won
+  }
+
+  // Butin: SEUL bonus soumis à la condition de mise exacte
+  if (bonuses.treasureAlliance && playerId && playerBets && playerTricks) {
+    const treasureBonus = calculateTreasureAllianceBonus(playerId, bonuses.treasureAlliance, playerBets, playerTricks);
+    bonusScore += treasureBonus;
+  }
+
+  const totalScore = miseScore + bonusScore;
+  return { miseScore, bonusScore, totalScore };
 }
 
 export function calculateIncrementalScore(
@@ -81,46 +156,86 @@ export function calculateRascalScore(
   bet: number,
   tricksWon: number,
   cardsDistributed: number,
-  bonusPoints: number = 0,
-  isCannonBall: boolean = false
-): { scoreFromBet: number; totalScore: number } {
+  bonuses: Partial<RoundBonus> = {},
+  isCannonBall: boolean = false,
+  isExtension: boolean = false,
+  playerId?: string,
+  playerBets?: Record<string, number>,
+  playerTricks?: Record<string, number>
+): { miseScore: number; bonusScore: number; totalScore: number } {
   const potentialPoints = cardsDistributed * 10;
-  let scoreFromBet = 0;
+  let miseScore = 0;
 
   const difference = Math.abs(tricksWon - bet);
 
   if (isCannonBall) {
     // Boulet de canon: +15 per card if exact, 0 otherwise
     if (difference === 0) {
-      scoreFromBet = cardsDistributed * 15;
+      miseScore = cardsDistributed * 15;
     } else {
-      scoreFromBet = 0;
+      miseScore = 0;
     }
   } else {
     // Chevrotine (standard Rascal)
     if (difference === 0) {
       // Coup direct: all points
-      scoreFromBet = potentialPoints;
+      miseScore = potentialPoints;
     } else if (difference === 1) {
       // Frappe à revers: half points
-      scoreFromBet = potentialPoints / 2;
+      miseScore = potentialPoints / 2;
     } else {
       // Échec cuisant: no points
-      scoreFromBet = 0;
+      miseScore = 0;
     }
   }
 
   // Apply bonus multiplier based on precision
-  let bonusScore = bonusPoints;
-  if (difference !== 0) {
-    if (difference === 1) {
-      bonusScore = bonusPoints / 2;
-    } else {
-      bonusScore = 0;
-    }
-  }
+  let bonusScore = 0;
+  
+  // Bonus simples (ne dépendent pas de la mise exacte - système Rascal spécifique)
+  if (difference === 0) {
+     // Coup direct: all bonuses
+     bonusScore += (bonuses.card14Regular || 0) * 10;
+     bonusScore += (bonuses.card14Black || 0) * 20;
+     bonusScore += (bonuses.sirenCapturedByPirate || 0) * 20;
+     bonusScore += (bonuses.pirateCapturedBySkullKing || 0) * 30;
+     bonusScore += (bonuses.sirenCapturedSkullKing || 0) * 40;
 
-  const totalScore = scoreFromBet + bonusScore;
-  return { scoreFromBet, totalScore };
+     if (isExtension) {
+       bonusScore += (bonuses.secondCaptured || 0) * 30;
+       bonusScore += (bonuses.davyJonesCasketCount || 0) * 20;
+       bonusScore += (bonuses.eightCardBonus || 0) * 5;
+       bonusScore -= (bonuses.sevenCardBonus || 0) * 5;
+     }
+   } else if (difference === 1) {
+     // Frappe à revers: half bonuses
+     bonusScore += (bonuses.card14Regular || 0) * 5;
+     bonusScore += (bonuses.card14Black || 0) * 10;
+     bonusScore += (bonuses.sirenCapturedByPirate || 0) * 10;
+     bonusScore += (bonuses.pirateCapturedBySkullKing || 0) * 15;
+     bonusScore += (bonuses.sirenCapturedSkullKing || 0) * 20;
+
+     if (isExtension) {
+       bonusScore += (bonuses.secondCaptured || 0) * 15;
+       bonusScore += (bonuses.davyJonesCasketCount || 0) * 10;
+       bonusScore += (bonuses.eightCardBonus || 0) * 2;
+       bonusScore -= (bonuses.sevenCardBonus || 0) * 2;
+     }
+   }
+   // Échec cuisant: no bonuses
+   
+   // Butin: appliqué selon la condition de mise pour les deux joueurs (uniquement en Rascal)
+   if (difference === 0 && bonuses.treasureAlliance && playerId && playerBets && playerTricks) {
+     const treasureBonus = calculateTreasureAllianceBonus(playerId, bonuses.treasureAlliance, playerBets, playerTricks);
+     bonusScore += treasureBonus;
+   } else if (difference === 1 && bonuses.treasureAlliance && playerId && playerBets && playerTricks) {
+     const treasureBonus = calculateTreasureAllianceBonus(playerId, bonuses.treasureAlliance, playerBets, playerTricks);
+     bonusScore += Math.floor(treasureBonus / 2); // Half bonus on frappe à revers
+   }
+
+  const totalScore = miseScore + bonusScore;
+  return { miseScore, bonusScore, totalScore };
 }
+
+
 

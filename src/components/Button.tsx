@@ -53,9 +53,13 @@ export function Button({
 
   return (
     <TouchableOpacity
-      onPress={onPress}
+      onPress={() => {
+        if (!disabled) {
+          onPress();
+        }
+      }}
       disabled={disabled}
-      activeOpacity={0.7}
+      activeOpacity={disabled ? 1 : 0.7}
       style={[styles.button, style]}
     >
       <Text style={[styles.text, textStyle]}>{title}</Text>

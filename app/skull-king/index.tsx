@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   ScrollView,
   View,
@@ -11,23 +11,26 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useTheme } from '../../src/contexts/ThemeContext';
-import { useSkullKingGame } from '../../src/contexts/SkullKingContext';
-import { Button } from '../../src/components/Button';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { useSkullKingGame } from '@/src/contexts/SkullKingContext';
+import { Button } from '@/src/components/Button';
+import { PageHeader } from '@/src/components/PageHeader';
 import { Ionicons } from '@expo/vector-icons';
-import { SkullKingGameState } from '../../src/types/SkullKing';
+import { SkullKingGameState } from '@/src/types/SkullKing';
 
 export default function SkullKingHomeScreen() {
   const router = useRouter();
   const { colors } = useTheme();
-  const { gameState, createSkullKingGame, loadGameState } = useSkullKingGame();
+  const { createSkullKingGame, getUnfinishedGames, loadGameState } = useSkullKingGame();
   const [unfinishedGames, setUnfinishedGames] = useState<SkullKingGameState[]>([]);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [playerNames, setPlayerNames] = useState<string[]>(['Joueur 1', 'Joueur 2']);
   const [playerInput, setPlayerInput] = useState('');
-  const [gameMode, setGameMode] = useState<'base' | 'base-extension' | 'incremental'>('base');
+  const [gameMode, setGameMode] = useState<'base' | 'base-extension' | 'incremental' | 'rascal'>('base');
   const [scoringSystem, setScoring] = useState<'skull-king' | 'rascal'>('skull-king');
+  const [playerCount, setPlayerCount] = useState<2 | 3 | 4 | 5 | 6>(3);
+  const [twoPlayerGhost, setTwoPlayerGhost] = useState(false);
 
   useFocusEffect(() => {
     loadUnfinishedGames();
@@ -36,9 +39,7 @@ export default function SkullKingHomeScreen() {
   const loadUnfinishedGames = async () => {
     setLoading(true);
     try {
-      const { getUnfinishedGames } = require('../../src/contexts/SkullKingContext');
-      // Import the context provider to access the method
-      const games = await useSkullKingGame().getUnfinishedGames();
+      const games = await getUnfinishedGames();
       setUnfinishedGames(games);
     } catch (error) {
       console.warn('Could not load unfinished games:', error);
@@ -51,9 +52,9 @@ export default function SkullKingHomeScreen() {
   const handleResumeGame = async (gameId: string) => {
     try {
       await loadGameState(gameId);
-      // Navigate to the game setup screen
+      // Navigate directly to the game screen
       router.push({
-        pathname: '/skull-king/game-setup',
+        pathname: '/skull-king/[gameId]',
         params: { gameId },
       });
     } catch (error) {
@@ -62,28 +63,41 @@ export default function SkullKingHomeScreen() {
   };
 
   const handleCreateGame = () => {
-    const config = {
-      mode: gameMode,
-      scoringSystem: scoringSystem,
-      cardsPerRound: gameMode === 'incremental'
-        ? [1, 2, 3, 4, 5, 4, 3, 2, 1]
-        : gameMode === 'base'
-        ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-        : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
-      includeKraken: gameMode === 'base-extension',
-      includeWhaleWhite: gameMode === 'base-extension',
-      includePiratesPowers: false,
-    };
+     const config = {
+       mode: gameMode as 'base' | 'base-extension' | 'incremental' | 'rascal',
+       scoringSystem: gameMode === 'rascal' ? 'rascal' as const : scoringSystem,
+       cardsPerRound: gameMode === 'incremental'
+         ? [1, 2, 3, 4, 5, 4, 3, 2, 1]
+         : gameMode === 'base'
+         ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+         : gameMode === 'rascal'
+         ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+         : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
+       includeKraken: gameMode === 'base-extension',
+       includeWhaleWhite: gameMode === 'base-extension',
+       includePiratesPowers: false,
+       include7And8: gameMode === 'base-extension',
+       playerCount: playerCount as 2 | 3 | 4 | 5 | 6,
+       twoPlayerVariant: playerCount === 2 && twoPlayerGhost,
+     };
 
-    const players = playerNames
+    let playerList = playerNames
       .filter(p => p.trim())
       .map((name, index) => ({
         id: `player_${index}`,
         name,
       }));
 
-    if (players.length >= 2) {
-      createSkullKingGame(players, config);
+    // Add Ghost player if 2-player mode with ghost variant
+    if (playerCount === 2 && twoPlayerGhost) {
+      playerList.push({
+        id: 'ghost_barbe_grise',
+        name: 'Fantôme de Barbe Grise',
+      });
+    }
+
+    if (playerList.length >= 2) {
+      createSkullKingGame(playerList, config as any);
       setPlayerNames(['Joueur 1', 'Joueur 2']);
       setPlayerInput('');
       setModalVisible(false);
@@ -108,25 +122,6 @@ export default function SkullKingHomeScreen() {
     container: {
       flex: 1,
       backgroundColor: colors.background,
-    },
-    header: {
-      paddingHorizontal: 16,
-      paddingVertical: 20,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-      backgroundColor: colors.background,
-    },
-    title: {
-      fontSize: 32,
-      fontWeight: '700',
-      color: colors.text,
-      fontFamily: 'Poppins_700Bold',
-    },
-    subtitle: {
-      fontSize: 14,
-      color: colors.textSecondary,
-      fontFamily: 'Poppins_400Regular',
-      marginTop: 4,
     },
     content: {
       flex: 1,
@@ -357,10 +352,7 @@ export default function SkullKingHomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>⚓ Skull King</Text>
-        <Text style={styles.subtitle}>Reprenez ou commencez une partie</Text>
-      </View>
+      <PageHeader title="⚓ Skull King" subtitle="Reprenez ou commencez une partie" size="large" />
 
       {loading ? (
         <View style={[styles.emptyState]}>
@@ -481,11 +473,20 @@ export default function SkullKingHomeScreen() {
                 >
                   <Text style={styles.modeButtonText}>Base + Extension</Text>
                 </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.modeButton,
+                    gameMode === 'rascal' && styles.modeButtonActive,
+                  ]}
+                  onPress={() => setGameMode('rascal')}
+                >
+                  <Text style={styles.modeButtonText}>Rascal</Text>
+                </TouchableOpacity>
               </View>
             </View>
 
-            {/* Scoring System (only for non-incremental) */}
-            {gameMode !== 'incremental' && (
+            {/* Scoring System (only for non-incremental and non-rascal) */}
+            {gameMode !== 'incremental' && gameMode !== 'rascal' && (
               <View style={styles.gameModeContainer}>
                 <Text style={styles.label}>Système de scoring</Text>
                 <View style={styles.gameModeButtons}>
@@ -508,6 +509,51 @@ export default function SkullKingHomeScreen() {
                     <Text style={styles.modeButtonText}>Rascal</Text>
                   </TouchableOpacity>
                 </View>
+              </View>
+            )}
+
+            {/* Player Count Selection */}
+            <View style={styles.gameModeContainer}>
+              <Text style={styles.label}>Nombre de joueurs</Text>
+              <View style={styles.gameModeButtons}>
+                {[2, 3, 4, 5, 6].map(count => (
+                  <TouchableOpacity
+                    key={count}
+                    style={[
+                      styles.modeButton,
+                      playerCount === count && styles.modeButtonActive,
+                    ]}
+                    onPress={() => {
+                      setPlayerCount(count as 2 | 3 | 4 | 5 | 6);
+                      if (count !== 2) {
+                        setTwoPlayerGhost(false);
+                      }
+                    }}
+                  >
+                    <Text style={styles.modeButtonText}>{count}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* 2-Player Ghost Variant */}
+            {playerCount === 2 && (
+              <View style={styles.gameModeContainer}>
+                <Text style={styles.label}>Mode 2 joueurs</Text>
+                <TouchableOpacity
+                  style={[
+                    styles.modeButton,
+                    twoPlayerGhost && styles.modeButtonActive,
+                  ]}
+                  onPress={() => setTwoPlayerGhost(!twoPlayerGhost)}
+                >
+                  <Text style={styles.modeButtonText}>
+                    {twoPlayerGhost ? '✓' : ''} Joueur vs Barbe Grise
+                  </Text>
+                </TouchableOpacity>
+                <Text style={[styles.label, { marginTop: 8, fontSize: 11, fontWeight: '400' }]}>
+                  Jouez avec le fantôme de Barbe Grise (il joue ses cartes aléatoirement et ne marque pas)
+                </Text>
               </View>
             )}
 
@@ -570,4 +616,5 @@ export default function SkullKingHomeScreen() {
     </SafeAreaView>
   );
 }
+
 
