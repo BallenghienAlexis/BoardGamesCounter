@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.2] - 2026-05-14
+
+### Fixed
+- ✅ Fixed game disappearing when quitting mid-round
+- Games now properly persist to storage with explicit save before navigation
+- Changed exit behavior: clicking quit button now returns to game list instead of home
+- Added `exitGameCleanly()` context function to ensure state is saved before leaving a game
+- Resolved timing issues where games would vanish from "In Progress" list due to auto-save delays
+
 ## [1.2.1] - 2026-05-14
 
 ### Fixed

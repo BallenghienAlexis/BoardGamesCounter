@@ -19,6 +19,7 @@ interface SkullKingContextType {
   saveGameState: () => Promise<void>;
   getUnfinishedGames: () => Promise<SkullKingGameState[]>;
   deleteGame: (gameId: string) => Promise<void>;
+  exitGameCleanly: () => Promise<void>;
 }
 
 const SkullKingContext = createContext<SkullKingContextType | undefined>(undefined);
@@ -221,43 +222,55 @@ export function SkullKingProvider({ children }: { children: ReactNode }) {
      }
    };
 
-   const deleteGame = async (gameId: string) => {
-     try {
-       await storageService.removeItem(STORAGE_KEY_PREFIX + gameId);
-       if (gameState?.gameId === gameId) {
-         setGameState(null);
-       }
-     } catch (error) {
-       console.warn('Could not delete game:', error);
-     }
-   };
+    const deleteGame = async (gameId: string) => {
+      try {
+        await storageService.removeItem(STORAGE_KEY_PREFIX + gameId);
+        if (gameState?.gameId === gameId) {
+          setGameState(null);
+        }
+      } catch (error) {
+        console.warn('Could not delete game:', error);
+      }
+    };
 
-  // Auto-save game state when it changes
+    const exitGameCleanly = async () => {
+      try {
+        // Force explicit save before exiting
+        if (gameState) {
+          await storageService.setItem(STORAGE_KEY_PREFIX + gameState.gameId, JSON.stringify(gameState));
+        }
+      } catch (error) {
+        console.warn('Could not save game state on exit:', error);
+      }
+    };
+
+   // Auto-save game state when it changes
   useEffect(() => {
     saveGameState();
   }, [saveGameState]);
 
-   return (
-     <SkullKingContext.Provider
-       value={{
-         gameState,
-         createSkullKingGame,
-         resetGameWithSamePlayers,
-         updatePlayerBet,
-         updatePlayerTricks,
-         updateRoundScore,
-         addBonus,
-         nextRound,
-         finishGame,
-         loadGameState,
-         saveGameState,
-         getUnfinishedGames,
-         deleteGame,
-       }}
-     >
-       {children}
-     </SkullKingContext.Provider>
-   );
+    return (
+      <SkullKingContext.Provider
+        value={{
+          gameState,
+          createSkullKingGame,
+          resetGameWithSamePlayers,
+          updatePlayerBet,
+          updatePlayerTricks,
+          updateRoundScore,
+          addBonus,
+          nextRound,
+          finishGame,
+          loadGameState,
+          saveGameState,
+          getUnfinishedGames,
+          deleteGame,
+          exitGameCleanly,
+        }}
+      >
+        {children}
+      </SkullKingContext.Provider>
+    );
 }
 
 export function useSkullKingGame() {

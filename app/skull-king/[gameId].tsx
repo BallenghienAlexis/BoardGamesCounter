@@ -24,7 +24,7 @@ export default function SkullKingGameScreen(){
   const { gameId } = useLocalSearchParams<{ gameId: string }>();
   const router = useRouter();
   const { colors } = useTheme();
-  const { gameState, updateRoundScore, nextRound } = useSkullKingGame();
+  const { gameState, updateRoundScore, nextRound, exitGameCleanly } = useSkullKingGame();
   const insets = useSafeAreaInsets();
 
   const [currentRound, setCurrentRound] = useState(1);
@@ -45,6 +45,13 @@ export default function SkullKingGameScreen(){
       router.replace('/');
     }
   }, [gameState, router]);
+
+   // Synchronize local currentRound with gameState when game is loaded/resumed
+   useEffect(() => {
+     if (gameState) {
+       setCurrentRound(gameState.currentRound);
+     }
+   }, [gameState]);
 
   if (!gameState) {
     return null;
@@ -660,7 +667,10 @@ export default function SkullKingGameScreen(){
           {
             text: 'Quitter',
             style: 'destructive',
-            onPress: () => router.replace('/'),
+            onPress: async () => {
+              await exitGameCleanly();
+              router.replace('/skull-king');
+            },
           },
         ]}
         onDismiss={() => setShowExitAlert(false)}
