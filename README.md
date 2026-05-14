@@ -1,6 +1,6 @@
 # 🎲 BoardGamesCounter
 
-[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](./package.json)
+[![Version](https://img.shields.io/badge/version-1.2.1-blue.svg)](./package.json)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)]()
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
 [![Code Quality](https://img.shields.io/badge/code%20quality-A+-brightgreen.svg)]()
@@ -92,19 +92,23 @@ eas build --platform android
 - Mise exacte: +1
 - Mise inexacte: -1
 
-## 📊 Version Actuelle: v1.2.0
+## 📊 Version Actuelle: v1.2.1
 
-### ✨ Nouveautés (v1.2.0)
+### 🔧 Corrections (v1.2.1)
+- ✅ **Cumulative Score Fix**: Corrigé le bug d'affichage du score total entre manches
+  - Les scores s'accumulent correctement (était seulement pair/impair avant)
+  - Chaque manche ajoute correctement son score au total cumulatif
+- ✅ Générateur de CHANGELOG automatisé
+
+### ✨ Nouveautés & Corrections Cumulées (v1.2.0+)
 - ✅ Onglet Historique avec graphiques SVG
 - ✅ Vue statistiques unifiée
 - ✅ Sous-titres aux onglets
-- ✅ Rascal intégré comme variante
+- ✅ Rascal intégré comme variante de Skull King
+- ✅ Android bundling fix
 - ✅ 0 avertissements ESLint
 
-### 🔧 Corrections (v1.2.0)
-- ✅ Android bundling fix
-- ✅ Score total correct entre manches
-- ✅ Dépendances React Hooks complètes
+📋 **[Voir le CHANGELOG complet →](./CHANGELOG.md)**
 
 ## 🛠️ Développement
 
