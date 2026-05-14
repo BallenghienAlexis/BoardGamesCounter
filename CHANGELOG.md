@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.3] - 2026-05-14
+
+### Fixed
+- ✅ Reverted exit behavior to home page (index) instead of game list
+- ✅ Fixed config validation in `getUnfinishedGames()` to prevent "cardsPerRound undefined" error
+- ✅ Corrected number of rounds for base-extension mode (10 instead of 19)
+- ✅ Simplified cardsPerRound configuration - Rascal specific rule, all others use 10 rounds
+
+### Summary
+- Game persistence properly saves before exit
+- Safe navigation without errors loading unfinished games
+- Correct game progression for all modes
+
 ## [1.2.2] - 2026-05-14
 
 ### Fixed

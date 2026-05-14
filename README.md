@@ -1,6 +1,6 @@
 # 🎲 BoardGamesCounter
 
-[![Version](https://img.shields.io/badge/version-1.2.2-blue.svg)](./package.json)
+[![Version](https://img.shields.io/badge/version-1.2.3-blue.svg)](./package.json)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)]()
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
 [![Code Quality](https://img.shields.io/badge/code%20quality-A+-brightgreen.svg)]()
@@ -92,16 +92,21 @@ eas build --platform android
 - Mise exacte: +1
 - Mise inexacte: -1
 
-## 📊 Version Actuelle: v1.2.2
+## 📊 Version Actuelle: v1.2.3
 
-### 🔧 Corrections (v1.2.2)
+### 🔧 Corrections (v1.2.3)
+- ✅ **Navigation Fix**: Retour à l'accueil (home) au lieu de la liste des jeux
+- ✅ **Config Validation**: Protection contre erreur "cardsPerRound undefined"
+- ✅ **Rounds Configuration**: Base + Extension corrigé (10 manches au lieu de 19)
+- ✅ **Code Refactor**: Configuration cardsPerRound simplifiée et maintenable
+
+### 🔧 Corrections Précédentes (v1.2.2)
 - ✅ **Game Persistence Fix**: Corrigé la disparition des parties quand on quitte en cours de manche
   - Les parties sont maintenant explicitement sauvegardées avant la navigation
-  - Bouton "Quitter" retourne à la liste des parties au lieu de l'accueil
   - Les jeux en cours restent accessibles même si on quitte sans finaliser la manche
 - ✅ Implémented `exitGameCleanly()` pour garantir la sauvegarde avant quitter
 
-### 🔧 Corrections Précédentes (v1.2.1)
+### 🔧 Corrections Antérieures (v1.2.1)
 - ✅ **Cumulative Score Fix**: Corrigé le bug d'affichage du score total entre manches
   - Les scores s'accumulent correctement (était seulement pair/impair avant)
   - Chaque manche ajoute correctement son score au total cumulatif

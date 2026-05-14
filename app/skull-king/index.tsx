@@ -66,13 +66,9 @@ export default function SkullKingHomeScreen() {
      const config = {
        mode: gameMode as 'base' | 'base-extension' | 'incremental' | 'rascal',
        scoringSystem: gameMode === 'rascal' ? 'rascal' as const : scoringSystem,
-       cardsPerRound: gameMode === 'incremental'
-         ? [1, 2, 3, 4, 5, 4, 3, 2, 1]
-         : gameMode === 'base'
-         ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-         : gameMode === 'rascal'
+       cardsPerRound: gameMode === 'rascal'
          ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-         : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], // base-extension: same as base
+         : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
        includeKraken: gameMode === 'base-extension',
        includeWhaleWhite: gameMode === 'base-extension',
        includePiratesPowers: false,
