@@ -196,30 +196,31 @@ export function SkullKingProvider({ children }: { children: ReactNode }) {
      }
    };
 
-   const getUnfinishedGames = async (): Promise<SkullKingGameState[]> => {
-     try {
-       const keys = await storageService.getAllKeys();
-       const gameKeys = keys.filter(key => key.startsWith(STORAGE_KEY_PREFIX));
-       const games: SkullKingGameState[] = [];
+    const getUnfinishedGames = async (): Promise<SkullKingGameState[]> => {
+      try {
+        const keys = await storageService.getAllKeys();
+        const gameKeys = keys.filter(key => key.startsWith(STORAGE_KEY_PREFIX));
+        const games: SkullKingGameState[] = [];
 
-       for (const key of gameKeys) {
-         const stored = await storageService.getItem(key);
-         if (stored) {
-           const game = JSON.parse(stored);
-           // Only return unfinished games (not all rounds completed)
-           if (game.currentRound <= game.config.cardsPerRound.length) {
-             games.push(game);
-           }
-         }
-       }
+        for (const key of gameKeys) {
+          const stored = await storageService.getItem(key);
+          if (stored) {
+            const game = JSON.parse(stored);
+            // Only return unfinished games (not all rounds completed)
+            // Protect against missing config
+            if (game.config?.cardsPerRound && game.currentRound <= game.config.cardsPerRound.length) {
+              games.push(game);
+            }
+          }
+        }
 
-       return games.sort((a, b) =>
-         parseInt(b.gameId) - parseInt(a.gameId) // Most recent first
-       );
-     } catch (error) {
-       console.warn('Could not load unfinished games:', error);
-       return [];
-     }
+        return games.sort((a, b) =>
+          parseInt(b.gameId) - parseInt(a.gameId) // Most recent first
+        );
+      } catch (error) {
+        console.warn('Could not load unfinished games:', error);
+        return [];
+      }
    };
 
     const deleteGame = async (gameId: string) => {

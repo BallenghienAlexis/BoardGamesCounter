@@ -669,7 +669,7 @@ export default function SkullKingGameScreen(){
             style: 'destructive',
             onPress: async () => {
               await exitGameCleanly();
-              router.replace('/skull-king');
+              router.replace('/');
             },
           },
         ]}
