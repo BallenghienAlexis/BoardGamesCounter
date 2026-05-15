@@ -49,7 +49,7 @@ export const SCORING_SYSTEMS = {
 
 /**
  * Calculate treasure alliance bonus points
- * IMPORTANT: Only the player who WON the treasure gets +20 bonus
+ * IMPORTANT: BOTH players get +20 bonus (player who played AND player who won)
  * Both players must have correct bets for the bonus to apply
  */
 export function calculateTreasureAllianceBonus(
@@ -66,11 +66,6 @@ export function calculateTreasureAllianceBonus(
   let totalBonus = 0;
 
   alliances.forEach((alliance) => {
-    // ONLY apply bonus to the player who WON the treasure
-    if (alliance.wonBy !== playerId) {
-      return; // This alliance bonus doesn't apply to current player
-    }
-
     // Check if BOTH players have correct bets:
     // 1. Player who played the treasure (alliance.playedBy)
     const playedByBet = playerBets[alliance.playedBy];
@@ -79,16 +74,19 @@ export function calculateTreasureAllianceBonus(
       (playedByBet === 0 && playedByTricks === 0) ||
       (playedByBet > 0 && playedByBet === playedByTricks);
 
-    // 2. Player who won the treasure (current player)
-    const wonByBet = playerBets[playerId];
-    const wonByTricks = playerTricks[playerId];
+    // 2. Player who won the treasure (alliance.wonBy)
+    const wonByBet = playerBets[alliance.wonBy];
+    const wonByTricks = playerTricks[alliance.wonBy];
     const wonByCorrect =
       (wonByBet === 0 && wonByTricks === 0) ||
       (wonByBet > 0 && wonByBet === wonByTricks);
 
-    // Bonus applies only if BOTH players guessed correctly
+    // Bonus applies to BOTH players only if BOTH guessed correctly
     if (playedByCorrect && wonByCorrect) {
-      totalBonus += 20; // +20 for each valid alliance
+      // Check if this alliance applies to current player
+      if (playerId === alliance.playedBy || playerId === alliance.wonBy) {
+        totalBonus += 20; // +20 for each valid alliance this player is involved in
+      }
     }
   });
 

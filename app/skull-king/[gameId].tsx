@@ -473,14 +473,14 @@ export default function SkullKingGameScreen(){
                 <View style={[styles.playerSection, { marginHorizontal: 16, marginBottom: 12 }]}>
                  <Text style={styles.playerName}>📋 Important - Butin</Text>
                   <Text style={[styles.phaseDescription, { marginVertical: 8 }]}>
-                    {`La carte Butin crée une ALLIANCE. SEUL le joueur qui remporte le butin gagne +20 pts de bonus (si les DEUX joueurs misent correctement).`}
+                    {`La carte Butin crée une ALLIANCE. Si vous misez tous les deux correctement, vous gagnez CHACUN +20 pts de bonus!`}
                   </Text>
                 </View>
 
                 <View style={[styles.playerSection, { marginHorizontal: 16, marginBottom: 12 }]}>
                   <Text style={styles.playerName}>💎 Sélectionner les Alliances Butin</Text>
                   <Text style={[styles.phaseDescription, { marginVertical: 8, fontSize: 12 }]}>
-                    Sélectionnez qui a remporté le butin joué par chaque joueur
+                    Qui a remporté le butin joué par chaque joueur?
                   </Text>
                   {playersToDisplay.map(player => (
                     <View key={`treasure-${player.id}`} style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.border }}>
@@ -489,9 +489,8 @@ export default function SkullKingGameScreen(){
                       </Text>
                       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
                         {playersToDisplay.filter(p => p.id !== player.id).map(otherPlayer => {
-                          // Check if this alliance is selected
-                          // Alliances are stored against the player who WON (otherPlayer)
-                          const alliances = playerData[otherPlayer.id]?.bonuses?.treasureAlliance;
+                          // Alliances are stored against the player who PLAYED the card
+                          const alliances = playerData[player.id]?.bonuses?.treasureAlliance;
                           const isSelected = Array.isArray(alliances) && alliances.some(
                             (a: TreasureAllianceBonus) => a.playedBy === player.id && a.wonBy === otherPlayer.id
                           );
@@ -504,9 +503,8 @@ export default function SkullKingGameScreen(){
                               ]}
                               onPress={() => {
                                 // Toggle treasure alliance selection
-                                // Store alliances against the player who WON
                                 setPlayerData(prev => {
-                                  const current = prev[otherPlayer.id]?.bonuses?.treasureAlliance;
+                                  const current = prev[player.id]?.bonuses?.treasureAlliance;
                                   const newAlliances = Array.isArray(current) ? [...current] : [];
 
                                   const allianceIndex = newAlliances.findIndex(
@@ -524,10 +522,10 @@ export default function SkullKingGameScreen(){
 
                                   return {
                                     ...prev,
-                                    [otherPlayer.id]: {
-                                      ...prev[otherPlayer.id] || { bet: 0, tricks: 0 },
+                                    [player.id]: {
+                                      ...prev[player.id] || { bet: 0, tricks: 0 },
                                       bonuses: {
-                                        ...prev[otherPlayer.id]?.bonuses,
+                                        ...prev[player.id]?.bonuses,
                                         treasureAlliance: newAlliances.length > 0 ? newAlliances : 0
                                       }
                                     }
