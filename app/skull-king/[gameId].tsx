@@ -24,7 +24,7 @@ export default function SkullKingGameScreen(){
   const { gameId } = useLocalSearchParams<{ gameId: string }>();
   const router = useRouter();
   const { colors } = useTheme();
-  const { gameState, updateRoundScore, nextRound, exitGameCleanly } = useSkullKingGame();
+  const { gameState, updateRoundScore, nextRound, finishGame, exitGameCleanly } = useSkullKingGame();
   const insets = useSafeAreaInsets();
 
   const [currentRound, setCurrentRound] = useState(1);
@@ -138,24 +138,26 @@ export default function SkullKingGameScreen(){
     setPhase('summary');
   };
 
-  const handleNextRound = () => {
-    Object.entries(roundScores).forEach(([playerId, score]) => {
-      updateRoundScore(currentRound - 1, playerId, score);
-    });
+   const handleNextRound = () => {
+     Object.entries(roundScores).forEach(([playerId, score]) => {
+       updateRoundScore(currentRound - 1, playerId, score);
+     });
 
-    if (currentRound < gameState.config.cardsPerRound.length) {
-      nextRound();
-      setCurrentRound(currentRound + 1);
-      setPhase('bet');
-      setPlayerData({});
-      setRoundScores({});
-    } else {
-      router.replace({
-        pathname: '/skull-king/game-end',
-        params: { gameId },
-      });
-    }
-  };
+     if (currentRound < gameState.config.cardsPerRound.length) {
+       nextRound();
+       setCurrentRound(currentRound + 1);
+       setPhase('bet');
+       setPlayerData({});
+       setRoundScores({});
+     } else {
+       // Game is complete - mark it as finished
+       finishGame();
+       router.replace({
+         pathname: '/skull-king/game-end',
+         params: { gameId },
+       });
+     }
+   };
 
   const styles = StyleSheet.create({
     container: {

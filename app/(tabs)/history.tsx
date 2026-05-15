@@ -173,31 +173,29 @@ export default function HistoryScreen() {
   };
 
   const SimpleLineChart = ({
-    data,
+    allPlayerData,
+    players,
     width = 300,
     height = 200,
-    playerName = ""
   }: {
-    data: { x: number; y: number }[];
+    allPlayerData: Record<string, { x: number; y: number }[]>;
+    players: any[];
     width?: number;
     height?: number;
-    playerName?: string;
   }) => {
-    if (!data || data.length === 0) return null;
+    if (!allPlayerData || Object.keys(allPlayerData).length === 0) return null;
 
-    const padding = 30;
+    const padding = 40;
     const chartWidth = width - padding * 2;
     const chartHeight = height - padding * 2;
 
-    // Find min/max values
-    const maxX = Math.max(...data.map(d => d.x)) + 1;
-    const maxY = Math.max(...data.map(d => d.y), 1) * 1.1; // Add 10% padding
+    // Collect all data points to find min/max
+    const allPoints = Object.values(allPlayerData).flat();
+    const maxX = Math.max(...allPoints.map(d => d.x)) + 1;
+    const maxY = Math.max(...allPoints.map(d => d.y), 1) * 1.1;
 
-    // Convert data to screen coordinates
-    const points = data.map(d => ({
-      screenX: padding + (d.x / maxX) * chartWidth,
-      screenY: height - padding - (d.y / maxY) * chartHeight,
-    }));
+    // Color palette for different players
+    const colors_palette = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F'];
 
     return (
       <View style={{ alignItems: 'center', marginVertical: 16 }}>
@@ -234,33 +232,46 @@ export default function HistoryScreen() {
             strokeWidth="2"
           />
 
-          {/* Line chart */}
-          {points.map((point, idx) => {
-            if (idx === points.length - 1) return null;
-            const nextPoint = points[idx + 1];
+          {/* Line chart for each player */}
+          {Object.entries(allPlayerData).map(([playerId, data], playerIdx) => {
+            const playerColor = colors_palette[playerIdx % colors_palette.length];
+            const points = data.map(d => ({
+              screenX: padding + (d.x / maxX) * chartWidth,
+              screenY: height - padding - (d.y / maxY) * chartHeight,
+            }));
+
             return (
-              <Line
-                key={`line-${idx}`}
-                x1={point.screenX}
-                y1={point.screenY}
-                x2={nextPoint.screenX}
-                y2={nextPoint.screenY}
-                stroke={colors.primary}
-                strokeWidth="3"
-              />
+              <React.Fragment key={`player-${playerId}`}>
+                {/* Lines */}
+                {points.map((point, idx) => {
+                  if (idx === points.length - 1) return null;
+                  const nextPoint = points[idx + 1];
+                  return (
+                    <Line
+                      key={`line-${playerId}-${idx}`}
+                      x1={point.screenX}
+                      y1={point.screenY}
+                      x2={nextPoint.screenX}
+                      y2={nextPoint.screenY}
+                      stroke={playerColor}
+                      strokeWidth="2.5"
+                    />
+                  );
+                })}
+
+                {/* Data points */}
+                {points.map((point, idx) => (
+                  <Circle
+                    key={`dot-${playerId}-${idx}`}
+                    cx={point.screenX}
+                    cy={point.screenY}
+                    r="3"
+                    fill={playerColor}
+                  />
+                ))}
+              </React.Fragment>
             );
           })}
-
-          {/* Data points */}
-          {points.map((point, idx) => (
-            <Circle
-              key={`dot-${idx}`}
-              cx={point.screenX}
-              cy={point.screenY}
-              r="4"
-              fill={colors.primary}
-            />
-          ))}
 
           {/* Y-axis labels */}
           {[0, 1, 2, 3, 4].map(i => {
@@ -279,6 +290,28 @@ export default function HistoryScreen() {
             );
           })}
         </Svg>
+
+        {/* Legend */}
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 12, gap: 12 }}>
+          {players
+            .filter((p: any) => !p.id.includes('ghost'))
+            .map((player: any, idx: number) => {
+              const playerColor = colors_palette[idx % colors_palette.length];
+              return (
+                <View key={player.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <View
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: 2,
+                      backgroundColor: playerColor,
+                    }}
+                  />
+                  <Text style={[styles.statLabel, { marginBottom: 0 }]}>{player.name}</Text>
+                </View>
+              );
+            })}
+        </View>
       </View>
     );
   };
@@ -326,46 +359,37 @@ export default function HistoryScreen() {
             </View>
 
              {selectedGame && chartData && (
-               <>
-                 <View style={styles.section}>
-                   <Text style={styles.chartTitle}>📈 Évolution des Scores</Text>
-                   <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chartContainer}>
-                     {Object.entries(chartData).map(([playerId, data]) => {
-                       const player = selectedGame.players.find((p: any) => p.id === playerId);
-                       return (
-                         <View key={playerId} style={{ marginRight: 16, alignItems: 'center' }}>
-                           <Text style={[styles.statLabel, { marginBottom: 8 }]}>{player?.name}</Text>
-                           <SimpleLineChart
-                             data={data as any}
-                             width={Math.min(screenWidth - 40, 250)}
-                             height={180}
-                           />
-                         </View>
-                       );
-                     })}
-                   </ScrollView>
-                 </View>
-
-                <View style={styles.section}>
-                  <Text style={styles.chartTitle}>📊 État Actuel</Text>
-                  <View style={styles.statsGrid}>
-                    {selectedGame.players
-                      .filter((p: any) => !p.id.includes('ghost'))
-                      .sort((a: any, b: any) => (selectedGame.playerScores[b.id] || 0) - (selectedGame.playerScores[a.id] || 0))
-                      .map((player: any, idx: number) => (
-                        <View key={player.id} style={styles.statCard}>
-                          <Text style={styles.statLabel}>
-                            {idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'} {player.name}
-                          </Text>
-                          <Text style={styles.statValue}>
-                            {selectedGame.playerScores[player.id] || 0} pts
-                          </Text>
-                        </View>
-                      ))}
+                <>
+                  <View style={styles.section}>
+                    <Text style={styles.chartTitle}>📈 Évolution des Scores</Text>
+                    <SimpleLineChart
+                      allPlayerData={chartData}
+                      players={selectedGame.players}
+                      width={screenWidth}
+                      height={250}
+                    />
                   </View>
-                </View>
-              </>
-            )}
+
+                 <View style={styles.section}>
+                   <Text style={styles.chartTitle}>📊 État Actuel</Text>
+                   <View style={styles.statsGrid}>
+                     {selectedGame.players
+                       .filter((p: any) => !p.id.includes('ghost'))
+                       .sort((a: any, b: any) => (selectedGame.playerScores[b.id] || 0) - (selectedGame.playerScores[a.id] || 0))
+                       .map((player: any, idx: number) => (
+                         <View key={player.id} style={styles.statCard}>
+                           <Text style={styles.statLabel}>
+                             {idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'} {player.name}
+                           </Text>
+                           <Text style={styles.statValue}>
+                             {selectedGame.playerScores[player.id] || 0} pts
+                           </Text>
+                         </View>
+                       ))}
+                   </View>
+                 </View>
+               </>
+             )}
           </>
         )}
       </ScrollView>
