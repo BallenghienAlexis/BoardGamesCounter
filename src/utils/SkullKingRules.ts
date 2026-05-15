@@ -49,7 +49,8 @@ export const SCORING_SYSTEMS = {
 
 /**
  * Calculate treasure alliance bonus points
- * Verifies that both players (who played and who won the treasure) have correct bets
+ * IMPORTANT: Only the player who WON the treasure gets +20 bonus
+ * Both players must have correct bets for the bonus to apply
  */
 export function calculateTreasureAllianceBonus(
   playerId: string,
@@ -58,25 +59,35 @@ export function calculateTreasureAllianceBonus(
   playerTricks: Record<string, number>
 ): number {
   // If alliances is just a number (count), return 0
-  // This will be improved when UI is updated to select specific players
   if (typeof alliances === 'number') {
-    return 0; // Safe default - will be improved when UI is updated
+    return 0;
   }
 
   let totalBonus = 0;
 
   alliances.forEach((alliance) => {
-    // Get the other player involved
-    const otherPlayerId = alliance.playedBy === playerId ? alliance.wonBy : alliance.playedBy;
-    const otherPlayerBet = playerBets[otherPlayerId];
-    const otherPlayerTricks = playerTricks[otherPlayerId];
+    // ONLY apply bonus to the player who WON the treasure
+    if (alliance.wonBy !== playerId) {
+      return; // This alliance bonus doesn't apply to current player
+    }
 
-    // Check if the other player has correct bet
-    const otherPlayerCorrect =
-      (otherPlayerBet === 0 && otherPlayerTricks === 0) ||
-      (otherPlayerBet > 0 && otherPlayerBet === otherPlayerTricks);
+    // Check if BOTH players have correct bets:
+    // 1. Player who played the treasure (alliance.playedBy)
+    const playedByBet = playerBets[alliance.playedBy];
+    const playedByTricks = playerTricks[alliance.playedBy];
+    const playedByCorrect =
+      (playedByBet === 0 && playedByTricks === 0) ||
+      (playedByBet > 0 && playedByBet === playedByTricks);
 
-    if (otherPlayerCorrect) {
+    // 2. Player who won the treasure (current player)
+    const wonByBet = playerBets[playerId];
+    const wonByTricks = playerTricks[playerId];
+    const wonByCorrect =
+      (wonByBet === 0 && wonByTricks === 0) ||
+      (wonByBet > 0 && wonByBet === wonByTricks);
+
+    // Bonus applies only if BOTH players guessed correctly
+    if (playedByCorrect && wonByCorrect) {
       totalBonus += 20; // +20 for each valid alliance
     }
   });

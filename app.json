@@ -50,6 +50,12 @@
         "projectId": "412a5945-b0ac-4dbc-9c5e-7c72ba7d7546"
       }
     },
-    "owner": "alexisballenghien"
+    "owner": "alexisballenghien",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/412a5945-b0ac-4dbc-9c5e-7c72ba7d7546"
+    }
   }
 }

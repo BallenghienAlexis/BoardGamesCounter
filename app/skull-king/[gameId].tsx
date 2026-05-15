@@ -469,85 +469,88 @@ export default function SkullKingGameScreen(){
                 </View>
               ))}
 
-              {/* TREASURE ALLIANCE SELECTION */}
-              <View style={[styles.playerSection, { marginHorizontal: 16, marginBottom: 12 }]}>
-                <Text style={styles.playerName}>📋 Important - Butin</Text>
-                 <Text style={[styles.phaseDescription, { marginVertical: 8 }]}>
-                   {`La carte Butin crée une ALLIANCE. Si vous jouez Butin et que l'autre joueur la remporte, vous gagnez CHACUN +20 pts de bonus SEULEMENT si vous misez TOUS LES DEUX correctement.`}
-                 </Text>
-               </View>
+                {/* TREASURE ALLIANCE SELECTION */}
+                <View style={[styles.playerSection, { marginHorizontal: 16, marginBottom: 12 }]}>
+                 <Text style={styles.playerName}>📋 Important - Butin</Text>
+                  <Text style={[styles.phaseDescription, { marginVertical: 8 }]}>
+                    {`La carte Butin crée une ALLIANCE. SEUL le joueur qui remporte le butin gagne +20 pts de bonus (si les DEUX joueurs misent correctement).`}
+                  </Text>
+                </View>
 
-               <View style={[styles.playerSection, { marginHorizontal: 16, marginBottom: 12 }]}>
-                 <Text style={styles.playerName}>💎 Sélectionner les Alliances Butin</Text>
-                 <Text style={[styles.phaseDescription, { marginVertical: 8, fontSize: 12 }]}>
-                   Sélectionnez qui a remporté le butin joué par chaque joueur
-                 </Text>
-                 {playersToDisplay.map(player => (
-                   <View key={`treasure-${player.id}`} style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.border }}>
-                     <Text style={[styles.bonusLabel, { marginBottom: 8 }]}>
-                       🎯 {player.name} a joué Butin, remporté par:
-                     </Text>
-                     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-                       {playersToDisplay.filter(p => p.id !== player.id).map(otherPlayer => {
-                         const alliances = playerData[player.id]?.bonuses?.treasureAlliance;
-                         const isSelected = Array.isArray(alliances) && alliances.some(
-                           (a: TreasureAllianceBonus) => a.playedBy === player.id && a.wonBy === otherPlayer.id
-                         );
+                <View style={[styles.playerSection, { marginHorizontal: 16, marginBottom: 12 }]}>
+                  <Text style={styles.playerName}>💎 Sélectionner les Alliances Butin</Text>
+                  <Text style={[styles.phaseDescription, { marginVertical: 8, fontSize: 12 }]}>
+                    Sélectionnez qui a remporté le butin joué par chaque joueur
+                  </Text>
+                  {playersToDisplay.map(player => (
+                    <View key={`treasure-${player.id}`} style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.border }}>
+                      <Text style={[styles.bonusLabel, { marginBottom: 8 }]}>
+                        🎯 {player.name} a joué Butin, remporté par:
+                      </Text>
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                        {playersToDisplay.filter(p => p.id !== player.id).map(otherPlayer => {
+                          // Check if this alliance is selected
+                          // Alliances are stored against the player who WON (otherPlayer)
+                          const alliances = playerData[otherPlayer.id]?.bonuses?.treasureAlliance;
+                          const isSelected = Array.isArray(alliances) && alliances.some(
+                            (a: TreasureAllianceBonus) => a.playedBy === player.id && a.wonBy === otherPlayer.id
+                          );
 
-                         return (
-                           <TouchableOpacity
-                             key={`alliance-${player.id}-${otherPlayer.id}`}
-                             style={[
-                               { borderColor: colors.border, borderWidth: 1, borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12, backgroundColor: isSelected ? colors.primary : colors.surface },
-                             ]}
-                             onPress={() => {
-                               // Toggle treasure alliance selection
-                               setPlayerData(prev => {
-                                 const current = prev[player.id]?.bonuses?.treasureAlliance;
-                                 const newAlliances = Array.isArray(current) ? [...current] : [];
+                          return (
+                            <TouchableOpacity
+                              key={`alliance-${player.id}-${otherPlayer.id}`}
+                              style={[
+                                { borderColor: colors.border, borderWidth: 1, borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12, backgroundColor: isSelected ? colors.primary : colors.surface },
+                              ]}
+                              onPress={() => {
+                                // Toggle treasure alliance selection
+                                // Store alliances against the player who WON
+                                setPlayerData(prev => {
+                                  const current = prev[otherPlayer.id]?.bonuses?.treasureAlliance;
+                                  const newAlliances = Array.isArray(current) ? [...current] : [];
 
-                                 const allianceIndex = newAlliances.findIndex(
-                                   (a: TreasureAllianceBonus) => a.playedBy === player.id && a.wonBy === otherPlayer.id
-                                 );
+                                  const allianceIndex = newAlliances.findIndex(
+                                    (a: TreasureAllianceBonus) => a.playedBy === player.id && a.wonBy === otherPlayer.id
+                                  );
 
-                                 if (allianceIndex >= 0) {
-                                   newAlliances.splice(allianceIndex, 1);
-                                 } else {
-                                   newAlliances.push({
-                                     playedBy: player.id,
-                                     wonBy: otherPlayer.id,
-                                   });
-                                 }
+                                  if (allianceIndex >= 0) {
+                                    newAlliances.splice(allianceIndex, 1);
+                                  } else {
+                                    newAlliances.push({
+                                      playedBy: player.id,
+                                      wonBy: otherPlayer.id,
+                                    });
+                                  }
 
-                                 return {
-                                   ...prev,
-                                   [player.id]: {
-                                     ...prev[player.id] || { bet: 0, tricks: 0 },
-                                     bonuses: {
-                                       ...prev[player.id]?.bonuses,
-                                       treasureAlliance: newAlliances.length > 0 ? newAlliances : 0
-                                     }
-                                   }
-                                 };
-                               });
-                             }}
-                           >
-                             <Text style={[
-                               styles.bonusLabel,
-                               {
-                                 color: isSelected ? colors.text : colors.textSecondary,
-                                 fontWeight: isSelected ? '700' : '600'
-                               }
-                             ]}>
-                               {otherPlayer.name}
-                             </Text>
-                           </TouchableOpacity>
-                         );
-                       })}
-                     </View>
-                   </View>
-                 ))}
-               </View>
+                                  return {
+                                    ...prev,
+                                    [otherPlayer.id]: {
+                                      ...prev[otherPlayer.id] || { bet: 0, tricks: 0 },
+                                      bonuses: {
+                                        ...prev[otherPlayer.id]?.bonuses,
+                                        treasureAlliance: newAlliances.length > 0 ? newAlliances : 0
+                                      }
+                                    }
+                                  };
+                                });
+                              }}
+                            >
+                              <Text style={[
+                                styles.bonusLabel,
+                                {
+                                  color: isSelected ? colors.text : colors.textSecondary,
+                                  fontWeight: isSelected ? '700' : '600'
+                                }
+                              ]}>
+                                {otherPlayer.name}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                    </View>
+                  ))}
+                </View>
             </>
           )}
 
