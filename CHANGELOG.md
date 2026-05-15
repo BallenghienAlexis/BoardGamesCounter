@@ -2,56 +2,37 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.7] - 2026-05-15
+
+### Fixed - Finished Games Display
+- ✅ Finished games (10/10 manches completed) no longer appear in "Parties en cours" list
+- ✅ Added missing `finishGame()` call when game is complete
+- ✅ Game status correctly tracked: currentRound = 11 when finished, removed from active games
+
+### Features - Unified Graph Visualization
+- ✅ History tab now displays all players on ONE graph with different colors
+- ✅ Added color legend for easy player identification
+- ✅ Game-end screen now shows evolution chart of entire game
+- ✅ Multiple player curves visible simultaneously for comparison
+
+### Changes
+- `app/skull-king/[gameId].tsx`: Added `finishGame()` import and call
+- `src/contexts/SkullKingContext.tsx`: Updated getUnfinishedGames() documentation
+- `app/(tabs)/history.tsx`: Refactored SimpleLineChart for multi-player support
+- `app/skull-king/game-end.tsx`: Added GameProgressChart component
+
 ## [1.2.6] - 2026-05-15
 
 ### Fixed - Treasure Bonus Storage Bug
 - ✅ **CRITICAL FIX**: Treasure (Butin) bonus now correctly awarded to BOTH players
 - ✅ Root cause: Alliance was only stored in player who PLAYED the card, not in player who WON
 - ✅ Solution: Alliance is now stored in BOTH players' bonuses
-  - Player who PLAYED gets the alliance in their bonuses → +20 points
-  - Player who WON gets the same alliance in their bonuses → +20 points
-- ✅ Both players receive +20 bonus (if both guessed correctly)
-
-### Example
-```
-Player A plays Treasure card, bets 2, wins 2 tricks ✅
-Player B wins the trick, bets 3, wins 3 tricks ✅
-
-Result:
-→ Alliance stored in playerData[A].bonuses.treasureAlliance
-→ Alliance ALSO stored in playerData[B].bonuses.treasureAlliance
-→ A gets +20 ✅
-→ B gets +20 ✅
-Both receive the bonus!
-```
 
 ## [1.2.5] - 2026-05-15
 
 ### Fixed - Treasure Card Bonus Bug (CORRECTED)
 - ✅ **CORRECTED**: Treasure (Butin) card bonus - BOTH players get +20 bonus (not just winner)
   - **Rule**: "vous gagnez **CHACUN** 20 points bonus"
-  - **Before (v1.2.4)**: Only winner received +20 ❌
-  - **Now (v1.2.5)**: BOTH player who played AND player who won receive +20 ✅
-- ✅ Both players must have correct bets for the bonus to apply (alliance requirement)
-
-## [1.2.4] - 2026-05-15
-
-### Fixed - Treasure Card Bonus Bug
-- ✅ **FIRST ATTEMPT**: Treasure (Butin) card bonus now correctly awarded to winner only
-  - ⚠️ **INCORRECT INTERPRETATION** - Fixed in v1.2.5
-
-## [1.2.3] - 2026-05-14
-
-### Fixed
-- ✅ Reverted exit behavior to home page (index) instead of game list
-- ✅ Fixed config validation in `getUnfinishedGames()` to prevent "cardsPerRound undefined" error
-- ✅ Corrected number of rounds for base-extension mode (10 instead of 19)
-- ✅ Simplified cardsPerRound configuration - Rascal specific rule, all others use 10 rounds
-
-### Summary
-- Game persistence properly saves before exit
-- Safe navigation without errors loading unfinished games
-- Correct game progression for all modes
 
 ## [1.2.2] - 2026-05-14
 
