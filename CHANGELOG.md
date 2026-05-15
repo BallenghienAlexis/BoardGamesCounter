@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.4] - 2026-05-15
+
+### Fixed - Treasure Card Bonus Bug
+- ✅ **Critical Fix**: Treasure (Butin) card bonus now correctly awarded to winner only
+  - **Before**: Player who played the card received +20 bonus (incorrect ❌)
+  - **After**: Only player who WON the card receives +20 bonus (correct ✅)
+- ✅ Both players must have correct bets for the bonus to apply (alliance requirement)
+- ✅ Updated UI logic to store alliances against winner, not player who played card
+- ✅ Clarified treasure rules in UI description
+
+### Impact
+- All existing saved games with treasure bonuses may need correction if they had incorrect bonus distribution
+- New games will have correct treasure scoring
+
 ## [1.2.3] - 2026-05-14
 
 ### Fixed
