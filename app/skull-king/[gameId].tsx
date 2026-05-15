@@ -503,21 +503,36 @@ export default function SkullKingGameScreen(){
                               ]}
                               onPress={() => {
                                 // Toggle treasure alliance selection
+                                // IMPORTANT: Store in BOTH players so each gets +20
                                 setPlayerData(prev => {
-                                  const current = prev[player.id]?.bonuses?.treasureAlliance;
-                                  const newAlliances = Array.isArray(current) ? [...current] : [];
+                                  const playedByAlliances = Array.isArray(prev[player.id]?.bonuses?.treasureAlliance) ? [...(prev[player.id].bonuses.treasureAlliance as TreasureAllianceBonus[])] : [];
+                                  const wonByAlliances = Array.isArray(prev[otherPlayer.id]?.bonuses?.treasureAlliance) ? [...(prev[otherPlayer.id].bonuses.treasureAlliance as TreasureAllianceBonus[])] : [];
 
-                                  const allianceIndex = newAlliances.findIndex(
+                                  const alliance = {
+                                    playedBy: player.id,
+                                    wonBy: otherPlayer.id,
+                                  };
+
+                                  // Check if alliance exists in playedBy
+                                  const indexPlayedBy = playedByAlliances.findIndex(
                                     (a: TreasureAllianceBonus) => a.playedBy === player.id && a.wonBy === otherPlayer.id
                                   );
 
-                                  if (allianceIndex >= 0) {
-                                    newAlliances.splice(allianceIndex, 1);
+                                  // Check if alliance exists in wonBy
+                                  const indexWonBy = wonByAlliances.findIndex(
+                                    (a: TreasureAllianceBonus) => a.playedBy === player.id && a.wonBy === otherPlayer.id
+                                  );
+
+                                  if (indexPlayedBy >= 0) {
+                                    // Remove from both
+                                    playedByAlliances.splice(indexPlayedBy, 1);
+                                    if (indexWonBy >= 0) {
+                                      wonByAlliances.splice(indexWonBy, 1);
+                                    }
                                   } else {
-                                    newAlliances.push({
-                                      playedBy: player.id,
-                                      wonBy: otherPlayer.id,
-                                    });
+                                    // Add to both
+                                    playedByAlliances.push(alliance);
+                                    wonByAlliances.push(alliance);
                                   }
 
                                   return {
@@ -526,7 +541,14 @@ export default function SkullKingGameScreen(){
                                       ...prev[player.id] || { bet: 0, tricks: 0 },
                                       bonuses: {
                                         ...prev[player.id]?.bonuses,
-                                        treasureAlliance: newAlliances.length > 0 ? newAlliances : 0
+                                        treasureAlliance: playedByAlliances.length > 0 ? playedByAlliances : 0
+                                      }
+                                    },
+                                    [otherPlayer.id]: {
+                                      ...prev[otherPlayer.id] || { bet: 0, tricks: 0 },
+                                      bonuses: {
+                                        ...prev[otherPlayer.id]?.bonuses,
+                                        treasureAlliance: wonByAlliances.length > 0 ? wonByAlliances : 0
                                       }
                                     }
                                   };

@@ -1,6 +1,6 @@
 # 🎲 BoardGamesCounter
 
-[![Version](https://img.shields.io/badge/version-1.2.5-blue.svg)](./package.json)
+[![Version](https://img.shields.io/badge/version-1.2.6-blue.svg)](./package.json)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)]()
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
 [![Code Quality](https://img.shields.io/badge/code%20quality-A+-brightgreen.svg)]()

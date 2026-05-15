@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.6] - 2026-05-15
+
+### Fixed - Treasure Bonus Storage Bug
+- ✅ **CRITICAL FIX**: Treasure (Butin) bonus now correctly awarded to BOTH players
+- ✅ Root cause: Alliance was only stored in player who PLAYED the card, not in player who WON
+- ✅ Solution: Alliance is now stored in BOTH players' bonuses
+  - Player who PLAYED gets the alliance in their bonuses → +20 points
+  - Player who WON gets the same alliance in their bonuses → +20 points
+- ✅ Both players receive +20 bonus (if both guessed correctly)
+
+### Example
+```
+Player A plays Treasure card, bets 2, wins 2 tricks ✅
+Player B wins the trick, bets 3, wins 3 tricks ✅
+
+Result:
+→ Alliance stored in playerData[A].bonuses.treasureAlliance
+→ Alliance ALSO stored in playerData[B].bonuses.treasureAlliance
+→ A gets +20 ✅
+→ B gets +20 ✅
+Both receive the bonus!
+```
+
 ## [1.2.5] - 2026-05-15
 
 ### Fixed - Treasure Card Bonus Bug (CORRECTED)
@@ -10,19 +33,6 @@ All notable changes to this project will be documented in this file.
   - **Before (v1.2.4)**: Only winner received +20 ❌
   - **Now (v1.2.5)**: BOTH player who played AND player who won receive +20 ✅
 - ✅ Both players must have correct bets for the bonus to apply (alliance requirement)
-- ✅ If alliances are valid → Each player gets +20 points (not just one)
-
-### Example  
-```
-Player A plays Treasure card
-Player B wins the trick
-
-If A bets correctly ✅ AND B bets correctly ✅
-  → A gets +20 bonus ✅
-  → B gets +20 bonus ✅
-  
-Both get the bonus!
-```
 
 ## [1.2.4] - 2026-05-15
 
