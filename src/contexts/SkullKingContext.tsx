@@ -18,6 +18,7 @@ interface SkullKingContextType {
   loadGameState: (gameId: string) => Promise<void>;
   saveGameState: () => Promise<void>;
   getUnfinishedGames: () => Promise<SkullKingGameState[]>;
+  getAllGames: () => Promise<SkullKingGameState[]>;
   deleteGame: (gameId: string) => Promise<void>;
   exitGameCleanly: () => Promise<void>;
 }
@@ -224,6 +225,32 @@ export function SkullKingProvider({ children }: { children: ReactNode }) {
        }
     };
 
+    const getAllGames = async (): Promise<SkullKingGameState[]> => {
+      try {
+        const keys = await storageService.getAllKeys();
+        const gameKeys = keys.filter(key => key.startsWith(STORAGE_KEY_PREFIX));
+        const games: SkullKingGameState[] = [];
+
+        for (const key of gameKeys) {
+          const stored = await storageService.getItem(key);
+          if (stored) {
+            const game = JSON.parse(stored);
+            // Return ALL games (finished and unfinished)
+            if (game.config?.cardsPerRound) {
+              games.push(game);
+            }
+          }
+        }
+
+        return games.sort((a, b) =>
+          parseInt(b.gameId) - parseInt(a.gameId) // Most recent first
+        );
+      } catch (error) {
+        console.warn('Could not load all games:', error);
+        return [];
+      }
+   };
+
     const deleteGame = async (gameId: string) => {
       try {
         await storageService.removeItem(STORAGE_KEY_PREFIX + gameId);
@@ -263,11 +290,12 @@ export function SkullKingProvider({ children }: { children: ReactNode }) {
           addBonus,
           nextRound,
           finishGame,
-          loadGameState,
-          saveGameState,
-          getUnfinishedGames,
-          deleteGame,
-          exitGameCleanly,
+         loadGameState,
+           saveGameState,
+           getUnfinishedGames,
+           getAllGames,
+           deleteGame,
+           exitGameCleanly,
         }}
       >
         {children}

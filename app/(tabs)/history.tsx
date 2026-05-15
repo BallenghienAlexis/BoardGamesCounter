@@ -17,27 +17,27 @@ import Svg, { Line, Circle, Text as SvgText } from 'react-native-svg';
 export default function HistoryScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const { getUnfinishedGames } = useSkullKingGame();
-  const [unfinishedGames, setUnfinishedGames] = useState<any[]>([]);
+  const { getAllGames } = useSkullKingGame();
+  const [allGames, setAllGames] = useState<any[]>([]);
   const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
 
   const loadGames = useCallback(async () => {
     try {
-      const games = await getUnfinishedGames();
-      setUnfinishedGames(games);
+      const games = await getAllGames();
+      setAllGames(games);
       if (games.length > 0) {
         setSelectedGameId(games[0].gameId);
       }
     } catch (error) {
       console.warn('Could not load games:', error);
     }
-  }, [getUnfinishedGames]);
+  }, [getAllGames]);
 
   useEffect(() => {
     loadGames();
   }, [loadGames]);
 
-  const selectedGame = unfinishedGames.find(g => g.gameId === selectedGameId);
+  const selectedGame = allGames.find(g => g.gameId === selectedGameId);
 
   const styles = StyleSheet.create({
     container: {
@@ -172,124 +172,131 @@ export default function HistoryScreen() {
     return playerData;
   };
 
-  const SimpleLineChart = ({
-    allPlayerData,
-    players,
-    width = 300,
-    height = 200,
-  }: {
-    allPlayerData: Record<string, { x: number; y: number }[]>;
-    players: any[];
-    width?: number;
-    height?: number;
-  }) => {
-    if (!allPlayerData || Object.keys(allPlayerData).length === 0) return null;
+   const SimpleLineChart = ({
+     allPlayerData,
+     players,
+     width = 300,
+     height = 200,
+   }: {
+     allPlayerData: Record<string, { x: number; y: number }[]>;
+     players: any[];
+     width?: number;
+     height?: number;
+   }) => {
+     if (!allPlayerData || Object.keys(allPlayerData).length === 0) return null;
 
-    const padding = 40;
-    const chartWidth = width - padding * 2;
-    const chartHeight = height - padding * 2;
+     const padding = 40;
+     const chartWidth = width - padding * 2;
+     const chartHeight = height - padding * 2;
 
-    // Collect all data points to find min/max
-    const allPoints = Object.values(allPlayerData).flat();
-    const maxX = Math.max(...allPoints.map(d => d.x)) + 1;
-    const maxY = Math.max(...allPoints.map(d => d.y), 1) * 1.1;
+     // Collect all data points to find min/max
+     const allPoints = Object.values(allPlayerData).flat();
+     const maxX = Math.max(...allPoints.map(d => d.x)) + 1;
+     const maxY = Math.max(...allPoints.map(d => d.y), 0);
+     const minY = Math.min(...allPoints.map(d => d.y), 0);
+     const rangeY = maxY - minY || 1;
+     const paddedMaxY = maxY + rangeY * 0.1;
+     const paddedMinY = minY - rangeY * 0.1;
+     const totalRangeY = paddedMaxY - paddedMinY;
 
-    // Color palette for different players
-    const colors_palette = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F'];
+     // Color palette for different players
+     const colors_palette = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F'];
 
-    return (
-      <View style={{ alignItems: 'center', marginVertical: 16 }}>
-        <Svg width={width} height={height} style={{ backgroundColor: colors.surface, borderRadius: 8 }}>
-          {/* Grid lines */}
-          {[0, 1, 2, 3, 4].map(i => (
-            <Line
-              key={`hline-${i}`}
-              x1={padding}
-              y1={padding + (i * chartHeight / 4)}
-              x2={width - padding}
-              y2={padding + (i * chartHeight / 4)}
-              stroke={colors.border}
-              strokeWidth="1"
-              strokeDasharray="4,4"
-            />
-          ))}
+     return (
+       <View style={{ alignItems: 'center', marginVertical: 16 }}>
+         <Svg width={width} height={height} style={{ backgroundColor: colors.surface, borderRadius: 8 }}>
+           {/* Grid lines */}
+           {[0, 1, 2, 3, 4].map(i => (
+             <Line
+               key={`hline-${i}`}
+               x1={padding}
+               y1={padding + (i * chartHeight / 4)}
+               x2={width - padding}
+               y2={padding + (i * chartHeight / 4)}
+               stroke={colors.border}
+               strokeWidth="1"
+               strokeDasharray="4,4"
+             />
+           ))}
 
-          {/* Axes */}
-          <Line
-            x1={padding}
-            y1={padding}
-            x2={padding}
-            y2={height - padding}
-            stroke={colors.textSecondary}
-            strokeWidth="2"
-          />
-          <Line
-            x1={padding}
-            y1={height - padding}
-            x2={width - padding}
-            y2={height - padding}
-            stroke={colors.textSecondary}
-            strokeWidth="2"
-          />
+           {/* Zero baseline */}
+           <Line
+             x1={padding}
+             y1={height - padding - ((0 - paddedMinY) / totalRangeY) * chartHeight}
+             x2={width - padding}
+             y2={height - padding - ((0 - paddedMinY) / totalRangeY) * chartHeight}
+             stroke={colors.textSecondary}
+             strokeWidth="2"
+           />
 
-          {/* Line chart for each player */}
-          {Object.entries(allPlayerData).map(([playerId, data], playerIdx) => {
-            const playerColor = colors_palette[playerIdx % colors_palette.length];
-            const points = data.map(d => ({
-              screenX: padding + (d.x / maxX) * chartWidth,
-              screenY: height - padding - (d.y / maxY) * chartHeight,
-            }));
+           {/* Y-axis */}
+           <Line
+             x1={padding}
+             y1={padding}
+             x2={padding}
+             y2={height - padding}
+             stroke={colors.textSecondary}
+             strokeWidth="2"
+           />
 
-            return (
-              <React.Fragment key={`player-${playerId}`}>
-                {/* Lines */}
-                {points.map((point, idx) => {
-                  if (idx === points.length - 1) return null;
-                  const nextPoint = points[idx + 1];
-                  return (
-                    <Line
-                      key={`line-${playerId}-${idx}`}
-                      x1={point.screenX}
-                      y1={point.screenY}
-                      x2={nextPoint.screenX}
-                      y2={nextPoint.screenY}
-                      stroke={playerColor}
-                      strokeWidth="2.5"
-                    />
-                  );
-                })}
+           {/* Line chart for each player */}
+           {Object.entries(allPlayerData).map(([playerId, data], playerIdx) => {
+             const playerColor = colors_palette[playerIdx % colors_palette.length];
+             const points = data.map(d => ({
+               screenX: padding + (d.x / maxX) * chartWidth,
+               screenY: height - padding - ((d.y - paddedMinY) / totalRangeY) * chartHeight,
+             }));
 
-                {/* Data points */}
-                {points.map((point, idx) => (
-                  <Circle
-                    key={`dot-${playerId}-${idx}`}
-                    cx={point.screenX}
-                    cy={point.screenY}
-                    r="3"
-                    fill={playerColor}
-                  />
-                ))}
-              </React.Fragment>
-            );
-          })}
+             return (
+               <React.Fragment key={`player-${playerId}`}>
+                 {/* Lines */}
+                 {points.map((point, idx) => {
+                   if (idx === points.length - 1) return null;
+                   const nextPoint = points[idx + 1];
+                   return (
+                     <Line
+                       key={`line-${playerId}-${idx}`}
+                       x1={point.screenX}
+                       y1={point.screenY}
+                       x2={nextPoint.screenX}
+                       y2={nextPoint.screenY}
+                       stroke={playerColor}
+                       strokeWidth="2.5"
+                     />
+                   );
+                 })}
 
-          {/* Y-axis labels */}
-          {[0, 1, 2, 3, 4].map(i => {
-            const value = Math.round((maxY / 4) * i);
-            return (
-              <SvgText
-                key={`ylabel-${i}`}
-                x={padding - 5}
-                y={height - padding - (i * chartHeight / 4) + 3}
-                fontSize="10"
-                fill={colors.textSecondary}
-                textAnchor="end"
-              >
-                {value}
-              </SvgText>
-            );
-          })}
-        </Svg>
+                 {/* Data points */}
+                 {points.map((point, idx) => (
+                   <Circle
+                     key={`dot-${playerId}-${idx}`}
+                     cx={point.screenX}
+                     cy={point.screenY}
+                     r="3"
+                     fill={playerColor}
+                   />
+                 ))}
+               </React.Fragment>
+             );
+           })}
+
+           {/* Y-axis labels */}
+           {[0, 1, 2, 3, 4].map(i => {
+             const value = Math.round(paddedMinY + (totalRangeY / 4) * (4 - i));
+             return (
+               <SvgText
+                 key={`ylabel-${i}`}
+                 x={padding - 5}
+                 y={padding + (i * chartHeight / 4) + 3}
+                 fontSize="10"
+                 fill={colors.textSecondary}
+                 textAnchor="end"
+               >
+                 {value}
+               </SvgText>
+             );
+           })}
+         </Svg>
 
         {/* Legend */}
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 12, gap: 12 }}>
@@ -319,49 +326,84 @@ export default function HistoryScreen() {
   const chartData = selectedGame ? buildChartData(selectedGame) : null;
   const screenWidth = Dimensions.get('window').width - 32;
 
+  // Separate finished and unfinished games
+  const unfinishedGames = allGames.filter(g => g.currentRound <= g.config.cardsPerRound.length);
+  const finishedGames = allGames.filter(g => g.currentRound > g.config.cardsPerRound.length);
+
+  const isGameFinished = selectedGame && selectedGame.currentRound > selectedGame.config.cardsPerRound.length;
+
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <PageHeader title="Historique" subtitle="Évolution des parties" />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {unfinishedGames.length === 0 ? (
+        {allGames.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="document" size={64} color={colors.primary} />
             <Text style={styles.emptyText}>
-              Aucune partie en cours
+              Aucune partie disponible
             </Text>
           </View>
         ) : (
           <>
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>📋 Parties en Cours</Text>
-              <View style={styles.gameList}>
-                {unfinishedGames.map(game => (
-                  <TouchableOpacity
-                    key={game.gameId}
-                    style={[styles.gameItem, selectedGameId === game.gameId && styles.gameItemActive]}
-                    onPress={() => setSelectedGameId(game.gameId)}
-                  >
-                    <View style={styles.gameInfo}>
-                      <Text style={styles.gameName}>
-                        {game.config.mode === 'incremental' ? '📊' : '⚓'} Manche {game.currentRound}/{game.config.cardsPerRound.length}
-                      </Text>
-                      <Text style={styles.gameStats}>
-                        {game.players.filter((p: any) => !p.id.includes('ghost')).length} joueur(s)
-                      </Text>
-                    </View>
-                    {selectedGameId === game.gameId && (
-                      <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
-                    )}
-                  </TouchableOpacity>
-                ))}
+            {unfinishedGames.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>📋 Parties en Cours</Text>
+                <View style={styles.gameList}>
+                  {unfinishedGames.map(game => (
+                    <TouchableOpacity
+                      key={game.gameId}
+                      style={[styles.gameItem, selectedGameId === game.gameId && styles.gameItemActive]}
+                      onPress={() => setSelectedGameId(game.gameId)}
+                    >
+                      <View style={styles.gameInfo}>
+                        <Text style={styles.gameName}>
+                          {game.config.mode === 'incremental' ? '📊' : '⚓'} Manche {game.currentRound}/{game.config.cardsPerRound.length}
+                        </Text>
+                        <Text style={styles.gameStats}>
+                          {game.players.filter((p: any) => !p.id.includes('ghost')).length} joueur(s)
+                        </Text>
+                      </View>
+                      {selectedGameId === game.gameId && (
+                        <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
-            </View>
+            )}
+
+            {finishedGames.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>✅ Parties Terminées</Text>
+                <View style={styles.gameList}>
+                  {finishedGames.map(game => (
+                    <TouchableOpacity
+                      key={game.gameId}
+                      style={[styles.gameItem, selectedGameId === game.gameId && styles.gameItemActive]}
+                      onPress={() => setSelectedGameId(game.gameId)}
+                    >
+                      <View style={styles.gameInfo}>
+                        <Text style={styles.gameName}>
+                          {game.config.mode === 'incremental' ? '📊' : '⚓'} {game.config.cardsPerRound.length} manches
+                        </Text>
+                        <Text style={styles.gameStats}>
+                          {game.players.filter((p: any) => !p.id.includes('ghost')).length} joueur(s)
+                        </Text>
+                      </View>
+                      {selectedGameId === game.gameId && (
+                        <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            )}
 
              {selectedGame && chartData && (
                 <>
                   <View style={styles.section}>
-                    <Text style={styles.chartTitle}>📈 Évolution des Scores</Text>
+                    <Text style={styles.chartTitle}>📈 Évolution des Scores {isGameFinished && '(Partie Terminée)'}</Text>
                     <SimpleLineChart
                       allPlayerData={chartData}
                       players={selectedGame.players}
@@ -370,26 +412,26 @@ export default function HistoryScreen() {
                     />
                   </View>
 
-                 <View style={styles.section}>
-                   <Text style={styles.chartTitle}>📊 État Actuel</Text>
-                   <View style={styles.statsGrid}>
-                     {selectedGame.players
-                       .filter((p: any) => !p.id.includes('ghost'))
-                       .sort((a: any, b: any) => (selectedGame.playerScores[b.id] || 0) - (selectedGame.playerScores[a.id] || 0))
-                       .map((player: any, idx: number) => (
-                         <View key={player.id} style={styles.statCard}>
-                           <Text style={styles.statLabel}>
-                             {idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'} {player.name}
-                           </Text>
-                           <Text style={styles.statValue}>
-                             {selectedGame.playerScores[player.id] || 0} pts
-                           </Text>
-                         </View>
-                       ))}
-                   </View>
-                 </View>
-               </>
-             )}
+                  <View style={styles.section}>
+                    <Text style={styles.chartTitle}>📊 État Final {isGameFinished ? '🏆' : 'Actuel'}</Text>
+                    <View style={styles.statsGrid}>
+                      {selectedGame.players
+                        .filter((p: any) => !p.id.includes('ghost'))
+                        .sort((a: any, b: any) => (selectedGame.playerScores[b.id] || 0) - (selectedGame.playerScores[a.id] || 0))
+                        .map((player: any, idx: number) => (
+                          <View key={player.id} style={styles.statCard}>
+                            <Text style={styles.statLabel}>
+                              {idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'} {player.name}
+                            </Text>
+                            <Text style={styles.statValue}>
+                              {selectedGame.playerScores[player.id] || 0} pts
+                            </Text>
+                          </View>
+                        ))}
+                    </View>
+                  </View>
+                </>
+              )}
           </>
         )}
       </ScrollView>

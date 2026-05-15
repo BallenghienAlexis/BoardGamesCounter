@@ -85,138 +85,145 @@ export default function GameEndScreen() {
      return playerData;
    };
 
-   const GameProgressChart = ({
-     allPlayerData,
-     players,
-     width = 300,
-     height = 200,
-   }: {
-     allPlayerData: Record<string, { x: number; y: number }[]>;
-     players: any[];
-     width?: number;
-     height?: number;
-   }) => {
-     if (!allPlayerData || Object.keys(allPlayerData).length === 0) return null;
+    const GameProgressChart = ({
+      allPlayerData,
+      players,
+      width = 300,
+      height = 200,
+    }: {
+      allPlayerData: Record<string, { x: number; y: number }[]>;
+      players: any[];
+      width?: number;
+      height?: number;
+    }) => {
+      if (!allPlayerData || Object.keys(allPlayerData).length === 0) return null;
 
-     const padding = 40;
-     const chartWidth = width - padding * 2;
-     const chartHeight = height - padding * 2;
+      const padding = 40;
+      const chartWidth = width - padding * 2;
+      const chartHeight = height - padding * 2;
 
-     const allPoints = Object.values(allPlayerData).flat();
-     const maxX = Math.max(...allPoints.map(d => d.x)) + 1;
-     const maxY = Math.max(...allPoints.map(d => d.y), 1) * 1.1;
+      const allPoints = Object.values(allPlayerData).flat();
+      const maxX = Math.max(...allPoints.map(d => d.x)) + 1;
+      const maxY = Math.max(...allPoints.map(d => d.y), 0);
+      const minY = Math.min(...allPoints.map(d => d.y), 0);
+      const rangeY = maxY - minY || 1;
+      const paddedMaxY = maxY + rangeY * 0.1;
+      const paddedMinY = minY - rangeY * 0.1;
+      const totalRangeY = paddedMaxY - paddedMinY;
 
-     const colors_palette = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F'];
+      const colors_palette = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F'];
 
-     return (
-       <View style={styles.chartContainer}>
-         <Svg width={width} height={height} style={{ backgroundColor: colors.surface, borderRadius: 8 }}>
-           {[0, 1, 2, 3, 4].map(i => (
-             <Line
-               key={`hline-${i}`}
-               x1={padding}
-               y1={padding + (i * chartHeight / 4)}
-               x2={width - padding}
-               y2={padding + (i * chartHeight / 4)}
-               stroke={colors.border}
-               strokeWidth="1"
-               strokeDasharray="4,4"
-             />
-           ))}
+      return (
+        <View style={styles.chartContainer}>
+          <Svg width={width} height={height} style={{ backgroundColor: colors.surface, borderRadius: 8 }}>
+            {[0, 1, 2, 3, 4].map(i => (
+              <Line
+                key={`hline-${i}`}
+                x1={padding}
+                y1={padding + (i * chartHeight / 4)}
+                x2={width - padding}
+                y2={padding + (i * chartHeight / 4)}
+                stroke={colors.border}
+                strokeWidth="1"
+                strokeDasharray="4,4"
+              />
+            ))}
 
-           <Line
-             x1={padding}
-             y1={padding}
-             x2={padding}
-             y2={height - padding}
-             stroke={colors.textSecondary}
-             strokeWidth="2"
-           />
-           <Line
-             x1={padding}
-             y1={height - padding}
-             x2={width - padding}
-             y2={height - padding}
-             stroke={colors.textSecondary}
-             strokeWidth="2"
-           />
+            {/* Zero baseline */}
+            <Line
+              x1={padding}
+              y1={height - padding - ((0 - paddedMinY) / totalRangeY) * chartHeight}
+              x2={width - padding}
+              y2={height - padding - ((0 - paddedMinY) / totalRangeY) * chartHeight}
+              stroke={colors.textSecondary}
+              strokeWidth="2"
+            />
 
-           {Object.entries(allPlayerData).map(([playerId, data], playerIdx) => {
-             const playerColor = colors_palette[playerIdx % colors_palette.length];
-             const points = data.map(d => ({
-               screenX: padding + (d.x / maxX) * chartWidth,
-               screenY: height - padding - (d.y / maxY) * chartHeight,
-             }));
+            <Line
+              x1={padding}
+              y1={padding}
+              x2={padding}
+              y2={height - padding}
+              stroke={colors.textSecondary}
+              strokeWidth="2"
+            />
 
-             return (
-               <React.Fragment key={`player-${playerId}`}>
-                 {points.map((point, idx) => {
-                   if (idx === points.length - 1) return null;
-                   const nextPoint = points[idx + 1];
-                   return (
-                     <Line
-                       key={`line-${playerId}-${idx}`}
-                       x1={point.screenX}
-                       y1={point.screenY}
-                       x2={nextPoint.screenX}
-                       y2={nextPoint.screenY}
-                       stroke={playerColor}
-                       strokeWidth="2.5"
-                     />
-                   );
-                 })}
+            {Object.entries(allPlayerData).map(([playerId, data], playerIdx) => {
+              const playerColor = colors_palette[playerIdx % colors_palette.length];
+              const points = data.map(d => ({
+                screenX: padding + (d.x / maxX) * chartWidth,
+                screenY: height - padding - ((d.y - paddedMinY) / totalRangeY) * chartHeight,
+              }));
 
-                 {points.map((point, idx) => (
-                   <Circle
-                     key={`dot-${playerId}-${idx}`}
-                     cx={point.screenX}
-                     cy={point.screenY}
-                     r="3"
-                     fill={playerColor}
-                   />
-                 ))}
-               </React.Fragment>
-             );
-           })}
+              return (
+                <React.Fragment key={`player-${playerId}`}>
+                  {points.map((point, idx) => {
+                    if (idx === points.length - 1) return null;
+                    const nextPoint = points[idx + 1];
+                    return (
+                      <Line
+                        key={`line-${playerId}-${idx}`}
+                        x1={point.screenX}
+                        y1={point.screenY}
+                        x2={nextPoint.screenX}
+                        y2={nextPoint.screenY}
+                        stroke={playerColor}
+                        strokeWidth="2.5"
+                      />
+                    );
+                  })}
 
-           {[0, 1, 2, 3, 4].map(i => {
-             const value = Math.round((maxY / 4) * i);
-             return (
-               <SvgText
-                 key={`ylabel-${i}`}
-                 x={padding - 5}
-                 y={height - padding - (i * chartHeight / 4) + 3}
-                 fontSize="10"
-                 fill={colors.textSecondary}
-                 textAnchor="end"
-               >
-                 {value}
-               </SvgText>
-             );
-           })}
-         </Svg>
+                  {points.map((point, idx) => (
+                    <Circle
+                      key={`dot-${playerId}-${idx}`}
+                      cx={point.screenX}
+                      cy={point.screenY}
+                      r="3"
+                      fill={playerColor}
+                    />
+                  ))}
+                </React.Fragment>
+              );
+            })}
 
-         <View style={styles.legendContainer}>
-           {players
-             .filter((p: any) => !p.id.includes('ghost'))
-             .map((player: any, idx: number) => {
-               const playerColor = colors_palette[idx % colors_palette.length];
-               return (
-                 <View key={player.id} style={styles.legendItem}>
-                   <View
-                     style={[
-                       styles.legendColor,
-                       { backgroundColor: playerColor },
-                     ]}
-                   />
-                   <Text style={styles.legendLabel}>{player.name}</Text>
-                 </View>
-               );
-             })}
-         </View>
-       </View>
-     );
-   };
+            {[0, 1, 2, 3, 4].map(i => {
+              const value = Math.round(paddedMinY + (totalRangeY / 4) * (4 - i));
+              return (
+                <SvgText
+                  key={`ylabel-${i}`}
+                  x={padding - 5}
+                  y={padding + (i * chartHeight / 4) + 3}
+                  fontSize="10"
+                  fill={colors.textSecondary}
+                  textAnchor="end"
+                >
+                  {value}
+                </SvgText>
+              );
+            })}
+          </Svg>
+
+          <View style={styles.legendContainer}>
+            {players
+              .filter((p: any) => !p.id.includes('ghost'))
+              .map((player: any, idx: number) => {
+                const playerColor = colors_palette[idx % colors_palette.length];
+                return (
+                  <View key={player.id} style={styles.legendItem}>
+                    <View
+                      style={[
+                        styles.legendColor,
+                        { backgroundColor: playerColor },
+                      ]}
+                    />
+                    <Text style={styles.legendLabel}>{player.name}</Text>
+                  </View>
+                );
+              })}
+          </View>
+        </View>
+      );
+    };
 
    const styles = StyleSheet.create({
      container: {
