@@ -1,6 +1,28 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions: [SemVer](https://semver.org/).
+New entries go under `[Unreleased]`; see `docs/WORKFLOW.md`.
+
+## [Unreleased]
+
+### Added
+- Jest test setup (`jest-expo`) with unit tests for all Skull King scoring rules (`npm test`)
+- CI workflow on pull requests and `master`: lint, typecheck, tests, version consistency
+- Development workflow (`docs/WORKFLOW.md`), Claude Code agents and skills (`.claude/`), PR and issue templates
+- Architecture, deployment, local build and maintenance docs in `docs/`
+- Path-scoped Claude Code rules (`.claude/rules/`) and a SessionStart hook for web sessions
+
+### Moved
+- Official Skull King rulebooks from `.agents/docs/` to `docs/rules/skull-king/`
+- Project-relevant third-party skills from `.agents/skills/` to `.claude/skills/` (unused ones removed)
+
+### Changed
+- `npm run validate` now fails on lint errors, failing tests and version mismatch
+- APK build workflow: Node 20, waits on `eas build --wait`, checks the tag matches `app.json`, can create the GitHub Release
+
+### Removed
+- Overlapping build docs (`QUICKSTART.md`, `BUILD_STRATEGY.md`, `GITHUB_SETUP.md`, `IMPLEMENTATION_READY.md`, `IMPLEMENTATION_SUMMARY.md`, `ANDROID_BUILD.md`), replaced by `docs/DEPLOYMENT.md` and `docs/ANDROID_LOCAL_BUILD.md`
 
 ## [1.2.7] - 2026-05-15
 
@@ -34,12 +56,24 @@ All notable changes to this project will be documented in this file.
 - ✅ **CORRECTED**: Treasure (Butin) card bonus - BOTH players get +20 bonus (not just winner)
   - **Rule**: "vous gagnez **CHACUN** 20 points bonus"
 
+## [1.2.4] - 2026-05-15
+
+### Fixed
+- Treasure alliance bonus awarded to the winner only (superseded by 1.2.5)
+
+## [1.2.3] - 2026-05-14
+
+### Fixed
+- Quitting a game returns to the home screen again
+- Config validation in `getUnfinishedGames` (no more "cardsPerRound undefined")
+- Base + Extension mode has 10 rounds instead of 19
+
 ## [1.2.2] - 2026-05-14
 
 ### Fixed
 - ✅ Fixed game disappearing when quitting mid-round
 - Games now properly persist to storage with explicit save before navigation
-- Changed exit behavior: clicking quit button now returns to game list instead of home
+- Changed exit behavior: clicking quit button now returns to game list instead of home (reverted in 1.2.3)
 - Added `exitGameCleanly()` context function to ensure state is saved before leaving a game
 - Resolved timing issues where games would vanish from "In Progress" list due to auto-save delays
 

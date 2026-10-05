@@ -114,7 +114,18 @@ async function runValidation() {
     log('✓ ESLint passed', 'green');
   } catch (e) {
     log('✗ ESLint found issues', 'red');
-    // Note: ESLint may fail but it's not a blocker
+    hasErrors = true;
+  }
+
+  logSection('4b. Running unit tests');
+
+  try {
+    log('Running: npm test -- --ci', 'blue');
+    execSync('npm test -- --ci', { stdio: 'inherit' });
+    log('✓ Unit tests passed', 'green');
+  } catch (e) {
+    log('✗ Unit tests failed', 'red');
+    hasErrors = true;
   }
 
   logSection('5. Checking app version consistency');
@@ -134,10 +145,11 @@ async function runValidation() {
       log(`✓ Version consistent: ${pkgVersion}`, 'green');
     } else {
       log(
-        `⚠ Version mismatch - package.json: ${pkgVersion}, app.json: ${appVersion}`,
-        'yellow'
+        `✗ Version mismatch - package.json: ${pkgVersion}, app.json: ${appVersion}`,
+        'red'
       );
-      log('  Update app.json to match package.json version', 'yellow');
+      log('  Update app.json to match package.json version', 'red');
+      hasErrors = true;
     }
   } catch (e) {
     log(`✗ Error checking versions: ${e.message}`, 'red');
