@@ -29,10 +29,17 @@ src/
     ├── StorageService.ts    # Wrapper AsyncStorage avec repli mémoire
     └── __tests__/           # Tests unitaires Jest
 components/, hooks/, constants/  # Reste du template Expo (themed-*, haptic-tab…)
+docs/                        # Architecture, workflow, déploiement, maintenance, plans
+└── rules/skull-king/        # Livret officiel Skull King (base + extension), MD + PDF
 scripts/validate-build.js    # Validation avant build (tsc, lint, tests, versions)
 .github/workflows/           # CI (PR) + build APK (tags v*)
-.claude/                     # Agents et skills Claude Code (voir docs/WORKFLOW.md)
-.agents/skills/              # Skills de référence tiers (Expo, React, a11y…), installés via skills-lock.json
+.claude/                     # Configuration Claude Code (voir docs/WORKFLOW.md)
+├── agents/                  # Sous-agents spécialisés
+├── skills/                  # Skills projet + skills de référence tiers (skills-lock.json)
+├── rules/                   # Consignes chargées selon les fichiers touchés
+├── hooks/                   # Scripts de hooks
+└── settings.json            # Permissions et hooks partagés
+CLAUDE.md                    # Contexte chargé à chaque session Claude Code
 ```
 
 Alias d'import : `@/` pointe vers la racine du repo (`@/src/components/Button`).
@@ -89,5 +96,7 @@ Les bonus (hors butin) s'appliquent même si la mise est ratée.
 - **Incrémental** : +1 si mise exacte, −1 sinon.
 - **Rascal chevrotine** : 10 × cartes si exact, moitié si écart de 1, 0 au-delà ; bonus pleins / moitié / nuls selon le même écart.
 - **Rascal boulet de canon** : 15 × cartes si exact, 0 sinon.
+
+Règles officielles (livret de base et extension) : [`docs/rules/skull-king/`](./rules/skull-king/).
 
 Toute modification de ces règles doit être couverte par `src/utils/__tests__/SkullKingRules.test.ts` et relue par l'agent `skull-king-rules-expert`.

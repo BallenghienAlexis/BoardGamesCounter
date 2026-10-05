@@ -2,9 +2,18 @@
 name: commit
 description: Crée des commits Conventional Commits propres pour BoardGamesCounter à partir des changements en cours, en les découpant par sujet et en vérifiant lint, typecheck et tests. À utiliser quand on demande de commiter.
 argument-hint: "[indication de type/scope]"
+allowed-tools: Bash(git status *) Bash(git diff *) Bash(git log *) Bash(git add *) Bash(git commit *) Bash(git switch *) Bash(npm run lint) Bash(npm run typecheck) Bash(npm test)
 ---
 
 Indication : $ARGUMENTS
+
+## État actuel
+
+- Branche : !`git branch --show-current`
+- Changements :
+```!
+git status --short
+```
 
 1. Refuser de commiter sur `master` : proposer une branche `<type>/<slug>` (voir `docs/WORKFLOW.md` §3).
 2. `git status` et `git diff` (y compris indexé). Regrouper les changements par sujet cohérent ; un sujet = un commit.

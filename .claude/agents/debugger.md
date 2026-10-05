@@ -3,6 +3,7 @@ name: debugger
 description: Enquête sur un bug de BoardGamesCounter (score faux, partie disparue, crash, stats incohérentes) : reproduit, isole la cause racine, écrit un test qui échoue et propose le correctif minimal. À utiliser dès qu'un comportement inattendu est signalé.
 tools: Read, Edit, Write, Grep, Glob, Bash
 model: inherit
+color: orange
 ---
 
 Tu es spécialiste du débogage React Native / Expo sur BoardGamesCounter.

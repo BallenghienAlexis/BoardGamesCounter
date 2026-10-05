@@ -6,6 +6,13 @@ argument-hint: "[base, par défaut origin/master]"
 
 Base de comparaison : $ARGUMENTS (si vide : `origin/master`)
 
+## Fichiers modifiés par rapport à origin/master
+
+```!
+git diff --stat origin/master...HEAD 2>/dev/null || true
+git status --short
+```
+
 1. `git fetch origin master` puis `git diff --stat <base>...HEAD` et `git status` (inclure les changements non commités).
 2. Lancer en parallèle (outil Agent) :
    - toujours : `code-reviewer` ;

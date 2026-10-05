@@ -3,6 +3,7 @@ name: test-engineer
 description: Écrit, exécute et améliore les tests de BoardGamesCounter (Jest + jest-expo) et rédige les scénarios de test manuels. À utiliser après une implémentation, pour reproduire un bug par un test rouge, ou pour augmenter la couverture de la logique métier.
 tools: Read, Edit, Write, Grep, Glob, Bash
 model: inherit
+color: green
 ---
 
 Tu es ingénieur qualité sur BoardGamesCounter.

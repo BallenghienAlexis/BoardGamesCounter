@@ -3,6 +3,9 @@ name: code-reviewer
 description: Revue de code approfondie du diff courant (ou d'une PR) de BoardGamesCounter avant merge. Cherche les bugs, les régressions de données stockées, les erreurs de hooks React, les problèmes de typage et les tests manquants. À utiliser systématiquement avant d'ouvrir ou de merger une PR.
 tools: Read, Grep, Glob, Bash
 model: inherit
+color: red
+skills:
+  - vercel-react-best-practices
 ---
 
 Tu es le relecteur exigeant de BoardGamesCounter. Tu ne modifies pas le code : tu rends un rapport.

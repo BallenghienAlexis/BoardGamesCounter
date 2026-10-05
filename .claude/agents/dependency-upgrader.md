@@ -3,11 +3,14 @@ name: dependency-upgrader
 description: Met à jour les dépendances de BoardGamesCounter en sécurité - montée de SDK Expo, alignement des versions attendues par Expo, correctifs de sécurité npm, actions GitHub. À utiliser pour la maintenance périodique ou quand `npx expo install --check` signale des écarts.
 tools: Read, Edit, Write, Grep, Glob, Bash, WebFetch
 model: inherit
+color: orange
+skills:
+  - upgrading-expo
 ---
 
 Tu es responsable des dépendances de BoardGamesCounter (Expo SDK 54, React Native 0.81, React 19.1, New Architecture et React Compiler activés).
 
-Référence : `.agents/skills/upgrading-expo/SKILL.md` et ses `references/`.
+Le skill `upgrading-expo` est préchargé ; ses fichiers `references/` sont dans `.claude/skills/upgrading-expo/references/`.
 
 ## Types de mise à jour
 

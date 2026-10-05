@@ -201,7 +201,30 @@ Après déploiement : installer l'APK, dérouler la checklist de non-régression
 | `storage-migration` | Guide pour faire évoluer une donnée stockée sans perdre les parties |
 | `maintenance-audit` | Audit périodique : dépendances, dette technique, code mort |
 
-Le dossier `.agents/skills/` contient en plus des skills de référence tiers (Expo, React, accessibilité…) listés dans `skills-lock.json`. Les agents peuvent les lire au besoin (par ex. `upgrading-expo`, `building-native-ui`, `accessibility`).
+Skills de référence tiers (source dans `skills-lock.json`), chargés automatiquement quand le sujet s'y prête et préchargés dans certains agents :
+
+| Skill | Source | Préchargé dans |
+|---|---|---|
+| `building-native-ui` | expo/skills | `feature-developer`, `mobile-ux-reviewer` |
+| `upgrading-expo` | expo/skills | `dependency-upgrader` |
+| `expo-deployment` | expo/skills | `release-manager` |
+| `expo-cicd-workflows` | expo/skills | — |
+| `accessibility` | addyosmani/web-quality-skills | `mobile-ux-reviewer` |
+| `vercel-react-best-practices` | vercel-labs/agent-skills | `feature-developer`, `code-reviewer` |
+| `vercel-composition-patterns` | vercel-labs/agent-skills | — |
+| `typescript-advanced-types` | wshobson/agents | — |
+
+### Autres réglages Claude Code (`.claude/`)
+
+| Élément | Rôle |
+|---|---|
+| `CLAUDE.md` (racine) | Contexte court chargé à chaque session : stack, commandes, règles absolues |
+| `.claude/rules/*.md` | Consignes chargées seulement quand Claude touche les fichiers concernés (`paths:`) : `scoring`, `storage`, `ui`, `testing`, `release-config` |
+| `.claude/settings.json` | Permissions partagées (commandes de vérification autorisées, force-push et push sur `master` interdits) et hooks |
+| `.claude/hooks/session-start.sh` | Dans une session Claude Code web, installe les dépendances pour que lint/tests tournent |
+| `.claude/settings.local.json`, `CLAUDE.local.md` | Réglages personnels, ignorés par git |
+
+Après une modification de ces fichiers, `/doctor prompt-audit` (Claude Code récent) signale les consignes contradictoires ou obsolètes.
 
 ### Inspiration
 

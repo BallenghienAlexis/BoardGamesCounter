@@ -11,6 +11,11 @@ New entries go under `[Unreleased]`; see `docs/WORKFLOW.md`.
 - CI workflow on pull requests and `master`: lint, typecheck, tests, version consistency
 - Development workflow (`docs/WORKFLOW.md`), Claude Code agents and skills (`.claude/`), PR and issue templates
 - Architecture, deployment, local build and maintenance docs in `docs/`
+- Path-scoped Claude Code rules (`.claude/rules/`) and a SessionStart hook for web sessions
+
+### Moved
+- Official Skull King rulebooks from `.agents/docs/` to `docs/rules/skull-king/`
+- Project-relevant third-party skills from `.agents/skills/` to `.claude/skills/` (unused ones removed)
 
 ### Changed
 - `npm run validate` now fails on lint errors, failing tests and version mismatch

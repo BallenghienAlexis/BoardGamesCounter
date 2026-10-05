@@ -1,49 +1,41 @@
-# CLAUDE.md
+# BoardGamesCounter
 
-Contexte pour Claude Code sur ce dépôt. La documentation humaine est dans `README.md` et `docs/`.
-
-## Projet
-
-BoardGamesCounter : compteur de scores de jeux de société (surtout Skull King) en Expo SDK 54 / React Native 0.81 / React 19.1 / TypeScript strict, Expo Router 6. New Architecture et React Compiler activés. 100 % hors-ligne : persistance AsyncStorage via `storageService`. Interface en français, thème sombre unique (`#0F1419`). Distribué en APK Android via EAS.
+Compteur de scores de jeux de société (surtout Skull King). Expo SDK 54, React Native 0.81, React 19.1, TypeScript strict, Expo Router 6, New Architecture et React Compiler activés. 100 % hors-ligne (AsyncStorage). Interface en français, thème sombre unique. Distribué en APK Android via EAS.
 
 ## Commandes
 
 ```bash
-npm start            # Expo dev server
-npm run lint         # ESLint (doit rester à 0 avertissement)
+npm start            # serveur Expo
+npm run lint         # ESLint, doit rester à 0 avertissement
 npm run typecheck    # tsc --noEmit
 npm test             # Jest (jest-expo)
-npm run validate     # tout ce qui précède + cohérence versions + config EAS
+npm run validate     # tout ce qui précède + versions + config EAS
 ```
 
-## Architecture (détail : docs/ARCHITECTURE.md)
+## Carte du code
 
-- `app/` : routes Expo Router uniquement. Ne jamais y mettre de tests ni de fichiers non-route.
-- `src/utils/` : logique pure. `SkullKingRules.ts` est le cœur métier, couvert par `src/utils/__tests__/SkullKingRules.test.ts`.
-- `src/contexts/` : `ThemeContext`, `PlayersContext`, `GameContext` (compteur générique), `SkullKingContext`, `StatsContext`.
-- `src/types/` : types persistés (`SkullKingGameState`, `OverallStats`…).
-- `components/`, `hooks/`, `constants/`, `app/modal.tsx` : restes du template Expo, non utilisés par l'app.
+- `app/` : routes Expo Router uniquement.
+- `src/utils/` : logique pure et testée (`SkullKingRules.ts` = cœur métier) ; tests dans `src/utils/__tests__/`.
+- `src/contexts/` : état global et persistance ; `src/types/` : types persistés ; `src/components/` : UI réutilisable.
+- `components/`, `hooks/`, `constants/`, `app/modal.tsx` : restes du template Expo, non utilisés.
 - Alias `@/` = racine du repo.
+- `docs/rules/skull-king/` : livret officiel des règles (base + extension), référence pour tout calcul de score.
+- Détails : `docs/ARCHITECTURE.md`. Des règles par zone se chargent automatiquement depuis `.claude/rules/` (scores, stockage, UI, tests, config/release).
 
-## Règles importantes
+## Toujours
 
-- **Données utilisateur** : les clés AsyncStorage (`board_games_saved_players`, `board_games_counter_games`, `skull_king_game_<id>`, `skull_king_game_stats`) contiennent des parties réelles. Tout changement de forme doit rester rétro-compatible ou migrer (skill `storage-migration`).
-- **Fin de partie** : une partie Skull King est terminée quand `currentRound > config.cardsPerRound.length`.
-- **Sauvegarde avant navigation** : utiliser `exitGameCleanly()` pour quitter une partie.
-- **Règles de score** : toute modification passe par des tests et l'agent `skull-king-rules-expert`. Butin = +20 pour chacun des deux joueurs si les deux ont réussi leur mise ; l'alliance est stockée chez les deux.
-- Couleurs via `useTheme()`, textes UI en français, dépendances ajoutées avec `npx expo install`.
+- Ne jamais casser les données déjà enregistrées sur les téléphones (voir `.claude/rules/storage.md`).
+- Branche `<type>/<slug>`, jamais de commit direct sur `master` ; PR avec CI verte ; squash merge.
+- Commits Conventional Commits en anglais (`feat(skull-king): …`, `fix(storage): …`).
+- Entrée sous `[Unreleased]` dans `CHANGELOG.md` pour tout `feat`/`fix`/`perf`.
+- Pas de tag `v*` (build EAS facturé au quota) sans demande explicite.
+- Lancer `npm run lint && npm run typecheck && npm test` avant de dire qu'un changement est prêt.
 
-## Workflow (détail : docs/WORKFLOW.md)
+## Workflow, agents et skills
 
-- Jamais de commit direct sur `master` ; branche `<type>/<slug>` ; PR + CI verte ; squash merge.
-- Commits Conventional Commits (`feat(skull-king): …`, `fix(storage): …`), en anglais comme l'historique.
-- Entrée `[Unreleased]` dans `CHANGELOG.md` pour tout `feat`/`fix`/`perf`.
-- Release : version identique dans `package.json` et `app.json`, puis tag `vX.Y.Z` (déclenche un build EAS payant en quota : uniquement sur demande explicite).
+Processus complet de la demande au déploiement : `docs/WORKFLOW.md`.
 
-## Agents et skills
-
-Agents (`.claude/agents/`) : `planner`, `feature-developer`, `test-engineer`, `code-reviewer`, `skull-king-rules-expert`, `mobile-ux-reviewer`, `debugger`, `doc-keeper`, `release-manager`, `dependency-upgrader`.
-
-Skills (`.claude/skills/`) : `/feature`, `/bugfix`, `/review-changes`, `/validate`, `/commit`, `/release`, `/doc-sync`, `add-board-game`, `storage-migration`, `maintenance-audit`.
-
-Références tierces (Expo, React, accessibilité) : `.agents/skills/`.
+- Point d'entrée : `/feature <description>` ou `/bugfix <description>`.
+- Agents (`.claude/agents/`) : `planner`, `feature-developer`, `test-engineer`, `code-reviewer`, `skull-king-rules-expert`, `mobile-ux-reviewer`, `debugger`, `doc-keeper`, `release-manager`, `dependency-upgrader`.
+- Skills projet : `/feature`, `/bugfix`, `/review-changes`, `/validate`, `/commit`, `/release`, `/doc-sync`, `add-board-game`, `storage-migration`, `maintenance-audit`.
+- Skills de référence tiers (`skills-lock.json`) : `building-native-ui`, `upgrading-expo`, `expo-deployment`, `expo-cicd-workflows`, `accessibility`, `vercel-react-best-practices`, `vercel-composition-patterns`, `typescript-advanced-types`.

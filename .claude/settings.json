@@ -5,25 +5,39 @@
       "Bash(npm run lint)",
       "Bash(npm run typecheck)",
       "Bash(npm test)",
-      "Bash(npm test:*)",
+      "Bash(npm test *)",
       "Bash(npm run validate)",
       "Bash(npm ci)",
       "Bash(npx tsc --noEmit)",
       "Bash(npx expo install --check)",
       "Bash(git status)",
-      "Bash(git diff:*)",
-      "Bash(git log:*)",
-      "Bash(git show:*)",
-      "Bash(git branch:*)",
-      "Bash(git fetch:*)",
-      "Bash(git describe:*)"
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Bash(git branch *)",
+      "Bash(git fetch *)",
+      "Bash(git describe *)"
     ],
     "deny": [
-      "Bash(git push --force:*)",
-      "Bash(git push -f:*)",
-      "Bash(git push origin master:*)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git push origin master *)",
       "Read(./.env)",
       "Read(./.env.*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/session-start.sh",
+            "timeout": 600
+          }
+        ]
+      }
     ]
   }
 }
