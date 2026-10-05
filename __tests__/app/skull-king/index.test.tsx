@@ -51,11 +51,10 @@ describe('SkullKingHomeScreen - ongoing games', () => {
     );
   });
 
-  // BUG : une partie Rascal est présentée comme « Base + Extension ».
-  it.failing('labels Rascal games correctly', async () => {
+  it('labels Rascal games correctly', async () => {
     await seedStorage({ skull_king_game_1: makeGame({ gameId: '1', config: makeConfig({ mode: 'rascal' }) }) });
     await renderScreen();
-    expect(screen.queryByText('Mode: Base + Extension')).toBeNull();
+    expect(screen.getByText('Mode: Rascal')).toBeTruthy();
   });
 });
 

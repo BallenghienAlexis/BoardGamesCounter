@@ -25,10 +25,9 @@ function capCalls(spy: jest.SpyInstance, original: (...args: never[]) => Promise
   return spy;
 }
 
-// BUG : useFocusEffect reçoit une fonction recréée à chaque rendu (pas de useCallback).
-// Chaque chargement provoque un rendu, qui relance le chargement : boucle infinie de
-// lectures du stockage tant que l'onglet Statistiques est affiché.
-it.failing('loads the statistics a bounded number of times', async () => {
+// Régression : sans useCallback, chaque chargement provoquait un rendu qui relançait le
+// chargement (boucle infinie de lectures du stockage tant que l'onglet était affiché).
+it('loads the statistics a bounded number of times', async () => {
   const original = statsService.getStats.bind(statsService);
   const getStats = capCalls(jest.spyOn(statsService, 'getStats'), original);
   renderWithProviders(<StatsScreen />);
@@ -36,8 +35,8 @@ it.failing('loads the statistics a bounded number of times', async () => {
   expect(getStats.mock.calls.length).toBeLessThan(5);
 });
 
-// BUG : même cause sur l'écran Skull King (liste des parties relue en boucle).
-it.failing('loads the Skull King games a bounded number of times', async () => {
+// Régression : même cause sur l'écran Skull King.
+it('loads the Skull King games a bounded number of times', async () => {
   const original = storageService.getAllKeys.bind(storageService);
   const getAllKeys = capCalls(jest.spyOn(storageService, 'getAllKeys'), original);
   renderWithProviders(<SkullKingHomeScreen />);
