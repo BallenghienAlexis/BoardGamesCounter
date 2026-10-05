@@ -1,168 +1,96 @@
 # 🎲 BoardGamesCounter
 
-[![Version](https://img.shields.io/badge/version-1.2.7-blue.svg)](./package.json)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)]()
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
-[![Code Quality](https://img.shields.io/badge/code%20quality-A+-brightgreen.svg)]()
+[![Version](https://img.shields.io/badge/version-1.2.7-blue.svg)](./CHANGELOG.md)
+[![CI](https://github.com/BallenghienAlexis/BoardGamesCounter/actions/workflows/ci.yml/badge.svg)](https://github.com/BallenghienAlexis/BoardGamesCounter/actions/workflows/ci.yml)
 
-Un compteur de score pour les jeux de société, particulièrement optimisé pour **Skull King** avec versionning des règles et modes de jeu avancés.
+Compteur de scores pour jeux de société, pensé pour **Skull King** (modes base, extension, incrémental et Rascal). Application Expo / React Native, entièrement hors-ligne : les parties sont enregistrées sur le téléphone.
 
 ## 📱 Fonctionnalités
 
-### 🎮 Gestion des Jeux
-- **Skull King**: Mode base, extension, incrémental et Rascal
-- **Parties en cours**: Suivi progressif des manches
-- **Reprise de parties**: Sauvegarde automatique des jeux en cours
-- **Score détaillé**: Affichage détaillé des bonus et des calculs
+### 🎮 Parties
+- **Skull King** : jeu de base, base + extension, mode incrémental, Rascal (chevrotine ou boulet de canon), de 2 à 6 joueurs, 10 manches.
+- Saisie des mises, des plis et des bonus (14, captures, butin, cartes d'extension) avec détail du calcul.
+- Sauvegarde automatique, reprise des **parties en cours** depuis l'accueil.
+- Compteur de points générique pour les autres jeux.
+- Joueurs mémorisés pour créer une partie en quelques taps.
 
-### 📊 Statistiques
-- **Classement des joueurs**: Tri par victoires et taux de victoire
-- **Historique**: Graphiques d'évolution des scores par partie
-- **Statistiques par variante**: Analyse des performances par mode de jeu
-- **Vue unifiée**: Interface claire et intuitive
+### 📊 Historique et statistiques
+- Graphique d'évolution des scores de tous les joueurs sur une même courbe (onglet Historique et fin de partie).
+- Classement en temps réel avec médailles.
+- Victoires et taux de victoire par joueur, globalement et par variante.
 
-### 🎯 Historique
-- **Graphiques SVG**: Visualisation de l'évolution des scores
-- **Parties en cours**: Liste des jeux actuels avec progression
-- **Standings**: Classement en temps réel avec médailles
+## 🚀 Démarrage
 
-## 🚀 Getting Started
-
-### Installation
+Pré-requis : Node.js 20+.
 
 ```bash
 npm install
+npm start          # puis a = Android, i = iOS, w = Web
 ```
 
-### Développement
+| Commande | Rôle |
+|---|---|
+| `npm start` | Serveur de développement Expo |
+| `npm run lint` | ESLint (config Expo) |
+| `npm run typecheck` | TypeScript (`tsc --noEmit`) |
+| `npm test` | Tests unitaires Jest |
+| `npm run validate` | Toutes les vérifications avant build |
 
-```bash
-npm start
-```
-
-Sélectionnez votre plateforme:
-- Android: `a`
-- iOS: `i`
-- Web: `w`
-
-### Build Production
-
-```bash
-eas build --platform android
-```
-
-## 📦 Structure du Projet
+## 📦 Structure
 
 ```
-├── app/                          # Expo Router pages
-│   ├── (tabs)/                   # Main tabs
-│   │   ├── index.tsx             # Page d'accueil - Gestion des jeux
-│   │   ├── history.tsx           # Historique avec graphiques
-│   │   └── stats.tsx             # Statistiques unifiées
-│   └── skull-king/               # Routes spécifiques à Skull King
-│       ├── [gameId].tsx          # Écran principal du jeu
-│       ├── game-end.tsx          # Résumé final
-│       ├── game-setup.tsx        # Configuration initiale
-│       └── index.tsx             # Liste des jeux
-├── src/
-│   ├── components/               # Composants réutilisables
-│   ├── contexts/                 # React Contexts (theming, game state)
-│   ├── types/                    # Définitions TypeScript
-│   └── utils/                    # Utilitaires (scoring, storage)
-└── assets/                       # Images et ressources
+app/            Écrans (Expo Router) : onglets, Skull King, compteur générique
+src/components  Composants réutilisables
+src/contexts    État global (joueurs, parties, Skull King, statistiques, thème)
+src/utils       Règles de score, statistiques, stockage (+ tests dans __tests__/)
+src/types       Types métier
+docs/           Architecture, workflow, déploiement, maintenance
+.claude/        Agents et skills Claude Code
 ```
 
-## 🎯 Règles de Scoring
+Détails : [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md).
 
-### Skull King - Mode Base
-- **Mise exacte**: +20 × plis remportés
-- **Mise 0 exacte**: +10 × cartes
-- **Écart**: -10 points par différence
-- **Bonus**: 
-  - Cartes 14: +10 (régulière) ou +20 (noir)
-  - Pirate capturé par SK: +30
-  - Sirène capturée: +20 ou +40
-  - Butin (Alliance): +20 (si les deux joueurs misent correctement)
+## 🎯 Règles de score (Skull King, mode base)
 
-### Skull King - Mode Rascal
-- Variantes de scoring personnalisées
-- Chevrotine ou Boulet de Canon
+| Situation | Points |
+|---|---|
+| Mise exacte (≥ 1) | +20 × plis |
+| Mise ratée (≥ 1) | −10 × écart |
+| Mise 0 réussie / ratée | +10 / −10 × cartes distribuées |
+| 14 de couleur / 14 noir | +10 / +20 |
+| Sirène capturée par un pirate | +20 |
+| Pirate capturé par le Skull King | +30 |
+| Skull King capturé par une sirène | +40 |
+| Butin (alliance) | +20 pour chacun des deux joueurs, si les deux ont réussi leur mise |
 
-### Skull King - Mode Incrémental
-- Mise exacte: +1
-- Mise inexacte: -1
+Extension, mode incrémental et Rascal : voir [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md#règles-de-calcul-source--srcutilsskullkingrulests).
 
-## 📊 Version Actuelle: v1.2.3
+## 📊 Version actuelle : 1.2.7
 
-### 🔧 Corrections (v1.2.3)
-- ✅ **Navigation Fix**: Retour à l'accueil (home) au lieu de la liste des jeux
-- ✅ **Config Validation**: Protection contre erreur "cardsPerRound undefined"
-- ✅ **Rounds Configuration**: Base + Extension corrigé (10 manches au lieu de 19)
-- ✅ **Code Refactor**: Configuration cardsPerRound simplifiée et maintenable
+Dernières corrections : les parties terminées n'apparaissent plus dans « Parties en cours », graphique multi-joueurs unifié, bonus de butin attribué aux deux joueurs. Historique complet : **[CHANGELOG.md](./CHANGELOG.md)**.
 
-### 🔧 Corrections Précédentes (v1.2.2)
-- ✅ **Game Persistence Fix**: Corrigé la disparition des parties quand on quitte en cours de manche
-  - Les parties sont maintenant explicitement sauvegardées avant la navigation
-  - Les jeux en cours restent accessibles même si on quitte sans finaliser la manche
-- ✅ Implémented `exitGameCleanly()` pour garantir la sauvegarde avant quitter
+## 🛠️ Contribuer
 
-### 🔧 Corrections Antérieures (v1.2.1)
-- ✅ **Cumulative Score Fix**: Corrigé le bug d'affichage du score total entre manches
-  - Les scores s'accumulent correctement (était seulement pair/impair avant)
-  - Chaque manche ajoute correctement son score au total cumulatif
-- ✅ Générateur de CHANGELOG automatisé
+Le processus complet (plan, branche, développement, tests, revue, commits conventionnels, release, déploiement) est décrit dans **[docs/WORKFLOW.md](./docs/WORKFLOW.md)**, avec les agents et skills Claude Code associés.
 
-### ✨ Nouveautés & Corrections Cumulées (v1.2.0+)
-- ✅ Onglet Historique avec graphiques SVG
-- ✅ Vue statistiques unifiée
-- ✅ Sous-titres aux onglets
-- ✅ Rascal intégré comme variante de Skull King
-- ✅ Android bundling fix
-- ✅ 0 avertissements ESLint
+En bref : une branche `type/sujet` par changement, commits [Conventional Commits](https://www.conventionalcommits.org/fr/v1.0.0/), PR avec CI verte, squash merge sur `master`.
 
-📋 **[Voir le CHANGELOG complet →](./CHANGELOG.md)**
-
-## 🛠️ Développement
-
-### Code Quality
-```bash
-npm run lint
-```
-
-### Type Checking
-```bash
-npx tsc --noEmit
-```
-
-### Dépendances Principales
-- **Expo**: 54.0.33
-- **React Native**: 0.81.5
-- **React Navigation**: 7.4.0
-- **React Native SVG**: 15.15.5
+Dépendances principales : Expo SDK 54, React Native 0.81, React 19.1, Expo Router 6, React Native SVG 15, AsyncStorage 2.
 
 ## 🚀 Déploiement
 
-### EAS Build (Android/iOS)
 ```bash
-eas build --platform android
-eas build --platform ios
+# après avoir monté la version dans package.json et app.json, et mis à jour le CHANGELOG
+git tag v1.2.8
+git push origin v1.2.8   # GitHub Actions lance le build EAS et publie l'APK dans Releases
 ```
 
-### Web Hosting (Expo Hosting)
-```bash
-eas deploy
-```
+Guide complet : [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md). Build local Android : [docs/ANDROID_LOCAL_BUILD.md](./docs/ANDROID_LOCAL_BUILD.md).
 
 ## 📞 Support
 
-Pour les bugs ou les suggestions, veuillez ouvrir une issue.
-
-## 📝 License
-
-MIT - Libre d'utilisation
+Bugs et suggestions : ouvrir une [issue](https://github.com/BallenghienAlexis/BoardGamesCounter/issues).
 
 ---
 
-**Développeur**: Alexis Ballenghien
-**Stack**: Expo + React Native + TypeScript
-**Plateforme**: iOS, Android, Web
+**Développeur** : Alexis Ballenghien · **Stack** : Expo + React Native + TypeScript · **Plateformes** : Android (APK), iOS et Web via Expo
