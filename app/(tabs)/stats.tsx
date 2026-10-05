@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -34,9 +34,12 @@ export default function StatsScreen() {
   const { stats, loadStats } = useStats();
   const [selectedMode, setSelectedMode] = useState<GameMode | null>(null);
 
-  useFocusEffect(() => {
-    loadStats();
-  });
+  // Callback stable : sinon useFocusEffect relance le chargement à chaque rendu (boucle infinie)
+  useFocusEffect(
+    useCallback(() => {
+      loadStats();
+    }, [loadStats])
+  );
 
   const styles = StyleSheet.create({
     container: {

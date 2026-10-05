@@ -27,8 +27,11 @@ src/
     ├── SkullKingRules.ts    # ⚠️ Calcul des scores : cœur métier, testé
     ├── StatsService.ts      # Agrégation des statistiques
     ├── StorageService.ts    # Wrapper AsyncStorage avec repli mémoire
-    └── __tests__/           # Tests unitaires Jest
+    └── __tests__/           # Tests unitaires Jest (aussi dans contexts/ et components/)
 components/, hooks/, constants/  # Reste du template Expo (themed-*, haptic-tab…)
+__tests__/app/               # Tests des écrans (même arborescence que app/)
+test-utils/                  # Outils de test : providers, fixtures, router factice
+jest.setup.ts                # Mocks globaux Jest (AsyncStorage, Expo Router, icônes…)
 docs/                        # Architecture, workflow, déploiement, maintenance, plans
 └── rules/skull-king/        # Livret officiel Skull King (base + extension), MD + PDF
 scripts/validate-build.js    # Validation avant build (tsc, lint, tests, versions)
@@ -65,7 +68,7 @@ Tous les accès passent par `storageService` (`src/utils/StorageService.ts`), qu
 | `board_games_saved_players` | `string[]` noms de joueurs | `PlayersContext.tsx` |
 | `board_games_counter_games` | `Game[]` compteur générique | `GameContext.tsx` |
 | `skull_king_game_<gameId>` | `SkullKingGameState` (une clé par partie) | `SkullKingContext.tsx` |
-| `skull_king_game_stats` | `OverallStats` | `StatsService.ts` |
+| `skull_king_game_stats` | `OverallStats` (joueurs indexés par nom ; `recordedGameIds` évite de compter deux fois une partie) | `StatsService.ts` |
 
 **Les données des utilisateurs ne sont jamais migrées automatiquement.** Toute modification de forme d'un de ces objets doit rester compatible avec les données déjà enregistrées (champs optionnels, valeurs par défaut à la lecture) ou s'accompagner d'une migration. Voir le skill `storage-migration`.
 
@@ -95,7 +98,7 @@ Les bonus (hors butin) s'appliquent même si la mise est ratée.
 
 - **Incrémental** : +1 si mise exacte, −1 sinon.
 - **Rascal chevrotine** : 10 × cartes si exact, moitié si écart de 1, 0 au-delà ; bonus pleins / moitié / nuls selon le même écart.
-- **Rascal boulet de canon** : 15 × cartes si exact, 0 sinon.
+- **Rascal boulet de canon** : 15 × cartes si exact, 0 sinon ; bonus seulement si exact.
 
 Règles officielles (livret de base et extension) : [`docs/rules/skull-king/`](./rules/skull-king/).
 

@@ -33,7 +33,8 @@ npm start          # puis a = Android, i = iOS, w = Web
 | `npm start` | Serveur de développement Expo |
 | `npm run lint` | ESLint (config Expo) |
 | `npm run typecheck` | TypeScript (`tsc --noEmit`) |
-| `npm test` | Tests unitaires Jest |
+| `npm test` | Tests Jest (logique, contextes, composants, écrans) |
+| `npm run test:coverage` | Tests + rapport et seuils de couverture |
 | `npm run validate` | Toutes les vérifications avant build |
 
 ## 📦 Structure
@@ -42,7 +43,9 @@ npm start          # puis a = Android, i = iOS, w = Web
 app/            Écrans (Expo Router) : onglets, Skull King, compteur générique
 src/components  Composants réutilisables
 src/contexts    État global (joueurs, parties, Skull King, statistiques, thème)
-src/utils       Règles de score, statistiques, stockage (+ tests dans __tests__/)
+src/utils       Règles de score, statistiques, stockage
+__tests__/app   Tests des écrans (les tests de src/ sont dans src/**/__tests__/)
+test-utils      Outils de test partagés (providers, fixtures, router factice)
 src/types       Types métier
 docs/           Architecture, workflow, déploiement, maintenance
 .claude/        Agents et skills Claude Code

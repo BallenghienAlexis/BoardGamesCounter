@@ -34,11 +34,15 @@ export default function GameEndScreen() {
        });
    }, [gameState]);
 
-   // Enregistrer les résultats de la partie quand la page est chargée
+   // Enregistrer les résultats de la partie quand la page est chargée.
+   // Seulement pour une partie terminée : « Nouvelle Partie » remplace l'état avant de quitter
+   // l'écran, et la nouvelle partie ne doit pas être comptée.
    useEffect(() => {
-     if (gameState && sortedPlayers.length > 0) {
+     const isFinished = !!gameState && gameState.currentRound > gameState.config.cardsPerRound.length;
+     if (gameState && isFinished && sortedPlayers.length > 0) {
        const playerResults: PlayerGameResult[] = sortedPlayers.map((player, idx) => ({
-         playerId: player.id,
+         // Les ids sont positionnels (player_0…) : le nom identifie la personne d'une partie à l'autre
+         playerId: player.name,
          playerName: player.name,
          finalScore: gameState.playerScores[player.id] || 0,
          rank: idx + 1,

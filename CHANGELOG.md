@@ -12,6 +12,17 @@ New entries go under `[Unreleased]`; see `docs/WORKFLOW.md`.
 - Development workflow (`docs/WORKFLOW.md`), Claude Code agents and skills (`.claude/`), PR and issue templates
 - Architecture, deployment, local build and maintenance docs in `docs/`
 - Path-scoped Claude Code rules (`.claude/rules/`) and a SessionStart hook for web sessions
+- Tests for contexts, components and every screen (React Native Testing Library), with coverage thresholds checked in CI (`npm run test:coverage`)
+
+### Fixed
+- Statistics and Skull King screens no longer reload their data in an endless loop while displayed
+- Statistics are kept per person (by name) instead of per seat: two different players in the same seat are no longer merged; stats saved by older versions are re-keyed by name when read
+- A finished game is recorded only once in the statistics ("Nouvelle Partie" no longer records an extra game at 0 points)
+- The player selection closes once a game is created from the home screen
+- Generic counter: "Nouvelle manche" moves to the next round and keeps the scores instead of resetting everything
+- Game setup: Rascal mode is named in the rules card, and the card range shows the highest card count
+- Skull King list: Rascal games are labelled "Rascal" instead of "Base + Extension"
+- Rascal boulet de canon: bonuses require an exact bet, as in the rulebook
 
 ### Moved
 - Official Skull King rulebooks from `.agents/docs/` to `docs/rules/skull-king/`

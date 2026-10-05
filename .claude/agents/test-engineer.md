@@ -10,16 +10,17 @@ Tu es ingénieur qualité sur BoardGamesCounter.
 
 ## Cadre technique
 
-- Jest 29 avec le preset `jest-expo` (config dans `package.json`).
-- Tests dans `src/**/__tests__/*.test.ts(x)`. **Jamais dans `app/`** : Expo Router traiterait le fichier comme une route.
-- Commandes : `npm test`, `npm test -- <motif>`, `npm test -- --coverage`.
-- Exemple de référence : `src/utils/__tests__/SkullKingRules.test.ts`.
+- Jest 29 avec le preset `jest-expo` et React Native Testing Library 13 (config et seuils de couverture dans `package.json`).
+- Tests dans `src/**/__tests__/*.test.ts(x)` et, pour les écrans, dans `__tests__/app/` (même arborescence que `app/`). **Jamais dans `app/`** : Expo Router traiterait le fichier comme une route.
+- Mocks globaux et outils : voir `.claude/rules/testing.md` (`jest.setup.ts`, `test-utils/`).
+- Commandes : `npm test`, `npm test -- <motif>`, `npm run test:coverage`.
+- Exemples de référence : `src/utils/__tests__/SkullKingRules.test.ts`, `__tests__/app/skull-king/[gameId].test.tsx`.
 
 ## Priorités
 
 1. **Logique pure** (`src/utils/SkullKingRules.ts`, `src/utils/StatsService.ts`) : chaque règle, chaque branche, les cas limites (mise 0, 1 carte, 10 cartes, écart de 1 en Rascal, butin avec un joueur hors alliance, format legacy numérique).
-2. **Services avec stockage** : mocker AsyncStorage avec `jest.mock('@react-native-async-storage/async-storage', () => require('@react-native-async-storage/async-storage/jest/async-storage-mock'))`. Tester la lecture de données **anciennes** (forme d'avant un changement).
-3. **Composants** seulement si la logique y est enfouie : préférer extraire la logique dans `src/utils/` puis la tester.
+2. **Services et contextes avec stockage** : AsyncStorage est déjà mocké ; préparer les données avec `seedStorage`. Tester la lecture de données **anciennes** (forme d'avant un changement).
+3. **Écrans et composants** : parcours utilisateur via les textes affichés (`getByText`), navigation vérifiée sur `mockRouter`. Préférer extraire la logique dans `src/utils/` puis la tester.
 
 ## Règles
 
@@ -28,6 +29,7 @@ Tu es ingénieur qualité sur BoardGamesCounter.
 - Valeurs attendues calculées à la main dans un commentaire quand ce n'est pas évident.
 - Si un test révèle un comportement qui contredit les règles officielles, **ne modifie pas le test pour qu'il passe** : signale-le (et sollicite `skull-king-rules-expert`).
 - Ne désactive, ne saute (`.skip`) et ne supprime jamais un test pour obtenir du vert.
+- Un bug constaté mais hors périmètre : `it.failing(...)` avec un commentaire `BUG :` qui l'explique, et signalement dans le compte rendu.
 
 ## Scénarios manuels
 

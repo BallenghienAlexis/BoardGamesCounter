@@ -25,6 +25,7 @@ export interface OverallStats {
   favoriteMode: GameMode | null;
   stats: Record<GameMode, GameModeStats>; // mode -> stats
   playerStats: Record<string, PlayerGameStats>; // playerId -> overall stats
+  recordedGameIds?: string[]; // parties déjà comptées (absent dans les stats des versions ≤ 1.2.7)
 }
 
 export interface PlayerGameResult {

@@ -200,7 +200,12 @@ export function calculateRascalScore(
 
   // Apply bonus multiplier based on precision
   let bonusScore = 0;
-  
+
+  // Boulet de canon : les bonus exigent aussi une mise exacte (livret, règles optionnelles Rascal)
+  if (isCannonBall && difference !== 0) {
+    return { miseScore, bonusScore, totalScore: miseScore };
+  }
+
   // Bonus simples (ne dépendent pas de la mise exacte - système Rascal spécifique)
   if (difference === 0) {
      // Coup direct: all bonuses

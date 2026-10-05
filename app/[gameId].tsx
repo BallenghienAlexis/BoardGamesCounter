@@ -19,7 +19,7 @@ import { Button } from '@/src/components/Button';
 export default function GameScreen() {
   const { gameId } = useLocalSearchParams<{ gameId: string }>();
   const router = useRouter();
-  const { games, updatePlayerScore, undoLastMove, resetGame } = useGames();
+  const { games, updatePlayerScore, undoLastMove, addRound } = useGames();
   const { colors } = useTheme();
   const [showScores, setShowScores] = useState(false);
   const [showGameEndAlert, setShowGameEndAlert] = useState(false);
@@ -239,10 +239,7 @@ export default function GameScreen() {
           title="Nouvelle manche"
           variant="success"
           style={styles.footerButton}
-          onPress={() => {
-            // Reset all scores but increment rounds
-            resetGame(gameId);
-          }}
+          onPress={() => addRound(gameId)}
         />
         <Button
           title="Terminer"

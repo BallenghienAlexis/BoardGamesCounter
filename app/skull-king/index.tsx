@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   ScrollView,
   View,
@@ -16,7 +16,14 @@ import { useSkullKingGame } from '@/src/contexts/SkullKingContext';
 import { Button } from '@/src/components/Button';
 import { PageHeader } from '@/src/components/PageHeader';
 import { Ionicons } from '@expo/vector-icons';
-import { SkullKingGameState } from '@/src/types/SkullKing';
+import { GameMode, SkullKingGameState } from '@/src/types/SkullKing';
+
+const MODE_LABELS: Record<GameMode, string> = {
+  base: 'Base',
+  'base-extension': 'Base + Extension',
+  incremental: 'Incrémental',
+  rascal: 'Rascal',
+};
 
 export default function SkullKingHomeScreen() {
   const router = useRouter();
@@ -32,11 +39,7 @@ export default function SkullKingHomeScreen() {
   const [playerCount, setPlayerCount] = useState<2 | 3 | 4 | 5 | 6>(3);
   const [twoPlayerGhost, setTwoPlayerGhost] = useState(false);
 
-  useFocusEffect(() => {
-    loadUnfinishedGames();
-  });
-
-  const loadUnfinishedGames = async () => {
+  const loadUnfinishedGames = useCallback(async () => {
     setLoading(true);
     try {
       const games = await getUnfinishedGames();
@@ -47,7 +50,14 @@ export default function SkullKingHomeScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getUnfinishedGames]);
+
+  // Callback stable : sinon useFocusEffect relance le chargement à chaque rendu (boucle infinie)
+  useFocusEffect(
+    useCallback(() => {
+      loadUnfinishedGames();
+    }, [loadUnfinishedGames])
+  );
 
   const handleResumeGame = async (gameId: string) => {
     try {
@@ -386,7 +396,7 @@ export default function SkullKingHomeScreen() {
                 </View>
 
                 <Text style={styles.gameCardInfo}>
-                  Mode: {game.config.mode === 'incremental' ? 'Incrémental' : game.config.mode === 'base' ? 'Base' : 'Base + Extension'}
+                  Mode: {MODE_LABELS[game.config.mode] ?? game.config.mode}
                 </Text>
 
                 <View style={styles.playersList}>

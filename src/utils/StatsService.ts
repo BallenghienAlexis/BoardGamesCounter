@@ -4,6 +4,49 @@ import type { GameMode } from '../types/SkullKing';
 
 const STATS_STORAGE_KEY = 'skull_king_game_stats';
 
+// Anciennes versions : stats indexées par id positionnel (player_0…), qui désignait des
+// personnes différentes d'une partie à l'autre. On les ré-indexe par nom à la lecture.
+const LEGACY_POSITIONAL_ID = /^player_\d+$/;
+
+function mergePlayerStats(a: PlayerGameStats, b: PlayerGameStats): PlayerGameStats {
+  const totalGames = a.totalGames + b.totalGames;
+  const wins = a.wins + b.wins;
+  const totalScore = a.totalScore + b.totalScore;
+  return {
+    playerId: a.playerId,
+    playerName: a.playerName,
+    totalGames,
+    wins,
+    losses: a.losses + b.losses,
+    totalScore,
+    avgScore: totalGames > 0 ? totalScore / totalGames : 0,
+    bestScore: Math.max(a.bestScore, b.bestScore),
+    worstScore: Math.min(a.worstScore, b.worstScore),
+    winRate: totalGames > 0 ? (wins / totalGames) * 100 : 0,
+  };
+}
+
+function rekeyLegacyPlayerStats(playerStats: Record<string, PlayerGameStats>): Record<string, PlayerGameStats> {
+  const result: Record<string, PlayerGameStats> = {};
+  Object.entries(playerStats).forEach(([key, value]) => {
+    const newKey = LEGACY_POSITIONAL_ID.test(key) && value.playerName ? value.playerName : key;
+    const entry = { ...value, playerId: newKey };
+    result[newKey] = result[newKey] ? mergePlayerStats(result[newKey], entry) : entry;
+  });
+  return result;
+}
+
+/** Lecture tolérante des stats enregistrées par les versions précédentes. */
+function normalizeStats(stats: OverallStats): OverallStats {
+  const modes = Object.fromEntries(
+    Object.entries(stats.stats ?? {}).map(([mode, modeStats]) => [
+      mode,
+      { ...modeStats, playerStats: rekeyLegacyPlayerStats(modeStats.playerStats ?? {}) },
+    ])
+  ) as OverallStats['stats'];
+  return { ...stats, stats: modes, playerStats: rekeyLegacyPlayerStats(stats.playerStats ?? {}) };
+}
+
 export const statsService = {
   /**
    * Enregistrer le résultat d'une partie (appelé quand la partie se termine)
@@ -15,6 +58,13 @@ export const statsService = {
   ): Promise<void> {
     try {
       const stats = await this.getStats();
+
+      // Une partie n'est comptée qu'une fois, même si l'écran de fin est réaffiché
+      const recordedGameIds = stats.recordedGameIds ?? [];
+      if (recordedGameIds.includes(gameId)) {
+        return;
+      }
+      stats.recordedGameIds = [...recordedGameIds, gameId];
 
       // Initialize mode stats if not exists
       if (!stats.stats[gameMode]) {
@@ -122,7 +172,7 @@ export const statsService = {
     try {
       const stored = await storageService.getItem(STATS_STORAGE_KEY);
       if (stored) {
-        return JSON.parse(stored);
+        return normalizeStats(JSON.parse(stored));
       }
     } catch (error) {
       console.warn('Could not load stats:', error);

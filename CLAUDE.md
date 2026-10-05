@@ -8,14 +8,16 @@ Compteur de scores de jeux de société (surtout Skull King). Expo SDK 54, React
 npm start            # serveur Expo
 npm run lint         # ESLint, doit rester à 0 avertissement
 npm run typecheck    # tsc --noEmit
-npm test             # Jest (jest-expo)
+npm test             # Jest (jest-expo + React Native Testing Library)
+npm run test:coverage  # idem + seuils de couverture (vérifiés en CI)
 npm run validate     # tout ce qui précède + versions + config EAS
 ```
 
 ## Carte du code
 
 - `app/` : routes Expo Router uniquement.
-- `src/utils/` : logique pure et testée (`SkullKingRules.ts` = cœur métier) ; tests dans `src/utils/__tests__/`.
+- `src/utils/` : logique pure et testée (`SkullKingRules.ts` = cœur métier).
+- Tests : `src/**/__tests__/` et, pour les écrans, `__tests__/app/` (jamais dans `app/`) ; outils dans `test-utils/`, mocks globaux dans `jest.setup.ts`.
 - `src/contexts/` : état global et persistance ; `src/types/` : types persistés ; `src/components/` : UI réutilisable.
 - `components/`, `hooks/`, `constants/`, `app/modal.tsx` : restes du template Expo, non utilisés.
 - Alias `@/` = racine du repo.

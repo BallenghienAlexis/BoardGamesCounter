@@ -4,6 +4,8 @@ import {
   calculateSkullKingScore,
   calculateTreasureAllianceBonus,
   DEFAULT_CARDS_PER_ROUND,
+  SCORING_SYSTEMS,
+  SKULL_KING_GAME_MODES,
   SKULL_KING_ROUNDS,
 } from '../SkullKingRules';
 
@@ -139,5 +141,112 @@ describe('calculateRascalScore', () => {
       expect(calculateRascalScore(2, 2, 4, {}, true).miseScore).toBe(60);
       expect(calculateRascalScore(2, 3, 4, {}, true).miseScore).toBe(0);
     });
+  });
+});
+
+describe('game modes and scoring systems', () => {
+  it('declares the four Skull King modes, only base-extension with extensions', () => {
+    expect(Object.keys(SKULL_KING_GAME_MODES)).toEqual(['base', 'base-extension', 'incremental', 'rascal']);
+    const withExtensions = Object.values(SKULL_KING_GAME_MODES).filter(m => m.includeExtensions);
+    expect(withExtensions.map(m => m.id)).toEqual(['base-extension']);
+  });
+
+  it('declares the skull-king and rascal scoring systems', () => {
+    expect(Object.keys(SCORING_SYSTEMS)).toEqual(['skull-king', 'rascal']);
+  });
+});
+
+describe('calculateSkullKingScore - edge cases', () => {
+  it('returns only the bet score when no bonus is given', () => {
+    expect(calculateSkullKingScore(2, 2, 4)).toEqual({ miseScore: 40, bonusScore: 0, totalScore: 40 });
+  });
+
+  it('ignores the treasure alliance when bets/tricks maps are missing', () => {
+    const result = calculateSkullKingScore(1, 1, 3, { treasureAlliance: [{ playedBy: 'a', wonBy: 'b' }] }, false, 'a');
+    expect(result.bonusScore).toBe(0);
+  });
+
+  it('counts each alliance a player is part of', () => {
+    const alliances = [
+      { playedBy: 'a', wonBy: 'b' },
+      { playedBy: 'b', wonBy: 'a' },
+    ];
+    const bets = { a: 1, b: 1 };
+    expect(calculateTreasureAllianceBonus('a', alliances, bets, bets)).toBe(40);
+  });
+
+  it('treats a player without a recorded bet as not correct', () => {
+    expect(calculateTreasureAllianceBonus('a', [{ playedBy: 'a', wonBy: 'b' }], { a: 1 }, { a: 1 })).toBe(0);
+  });
+});
+
+describe('calculateRascalScore - bonuses and butin', () => {
+  const allBonuses = {
+    card14Regular: 1,
+    card14Black: 1,
+    sirenCapturedByPirate: 1,
+    pirateCapturedBySkullKing: 1,
+    sirenCapturedSkullKing: 1,
+    secondCaptured: 1,
+    davyJonesCasketCount: 1,
+    eightCardBonus: 1,
+    sevenCardBonus: 1,
+  };
+
+  it('gives all base bonuses on a direct hit (extension ignored outside extension mode)', () => {
+    // 10 + 20 + 20 + 30 + 40
+    expect(calculateRascalScore(1, 1, 3, allBonuses).bonusScore).toBe(120);
+  });
+
+  it('adds extension bonuses on a direct hit in extension mode', () => {
+    // 120 + 30 + 20 + 5 - 5
+    expect(calculateRascalScore(1, 1, 3, allBonuses, false, true).bonusScore).toBe(170);
+  });
+
+  it('halves base and extension bonuses on a frappe à revers', () => {
+    // 5 + 10 + 10 + 15 + 20 = 60, extension: 15 + 10 + 2 - 2 = 25
+    expect(calculateRascalScore(1, 2, 3, allBonuses).bonusScore).toBe(60);
+    expect(calculateRascalScore(1, 2, 3, allBonuses, false, true).bonusScore).toBe(85);
+  });
+
+  it('gives no bonus at all on an échec cuisant', () => {
+    expect(calculateRascalScore(0, 3, 3, allBonuses, false, true).bonusScore).toBe(0);
+  });
+
+  const alliance = { treasureAlliance: [{ playedBy: 'a', wonBy: 'b' }] };
+
+  it('gives the full butin on a direct hit when both players are correct', () => {
+    const bets = { a: 1, b: 1 };
+    expect(calculateRascalScore(1, 1, 3, alliance, false, false, 'a', bets, bets).bonusScore).toBe(20);
+  });
+
+  it('does not give the butin on a frappe à revers since the player missed the exact bet', () => {
+    // Butin requires both exact bets; a frappe à revers means this player is off by one.
+    expect(
+      calculateRascalScore(1, 2, 3, alliance, false, false, 'a', { a: 1, b: 1 }, { a: 2, b: 1 }).bonusScore
+    ).toBe(0);
+  });
+
+  it('applies bonuses on a boulet de canon direct hit', () => {
+    const result = calculateRascalScore(2, 2, 4, { card14Black: 1 }, true);
+    expect(result).toEqual({ miseScore: 60, bonusScore: 20, totalScore: 80 });
+  });
+
+  it('gives no bonus on a boulet de canon miss, even off by one (rulebook)', () => {
+    const bets = { a: 2, b: 1 };
+    const result = calculateRascalScore(2, 3, 4, { card14Black: 1, ...alliance }, true, true, 'a', bets, { a: 3, b: 1 });
+    expect(result).toEqual({ miseScore: 0, bonusScore: 0, totalScore: 0 });
+  });
+});
+
+describe('missing bonus values', () => {
+  it('treats absent extension bonuses as zero in every scoring system', () => {
+    expect(calculateSkullKingScore(1, 1, 3, {}, true).bonusScore).toBe(0);
+    expect(calculateRascalScore(1, 1, 3, {}, false, true).bonusScore).toBe(0);
+    expect(calculateRascalScore(1, 2, 3, {}, false, true).bonusScore).toBe(0);
+  });
+
+  it('accepts a successful zero bet from the player who won the butin', () => {
+    expect(calculateTreasureAllianceBonus('b', [{ playedBy: 'a', wonBy: 'b' }], { a: 2, b: 0 }, { a: 2, b: 0 })).toBe(20);
   });
 });

@@ -73,8 +73,12 @@ npm test
 
 ## 5. Tester — agent `test-engineer`
 
-- **Unitaires (Jest + jest-expo)** : obligatoires pour toute logique dans `src/utils/` (scores, statistiques, transformation de données). Fichiers dans `src/**/__tests__/*.test.ts`. Ne jamais mettre de tests dans `app/` (Expo Router les prendrait pour des routes).
-- **Correctif de bug** : écrire d'abord un test qui échoue, puis corriger.
+- **Unitaires (Jest + jest-expo)** : obligatoires pour toute logique dans `src/utils/` (scores, statistiques, transformation de données).
+- **Contextes, composants et écrans (React Native Testing Library)** : tout écran ou composant modifié garde ses tests à jour.
+- **Emplacement** : `src/**/__tests__/*.test.ts(x)` pour le code de `src/` ; `__tests__/app/` (même arborescence que `app/`) pour les écrans. Ne jamais mettre de tests dans `app/` (Expo Router les prendrait pour des routes).
+- **Outils partagés** (`test-utils/`) : `renderWithProviders` (tous les providers), `renderWithGame` (partie Skull King chargée dans le contexte), `seedStorage`, `flushAsync`, fixtures `makeGame` / `makeConfig`, `mockRouter`. Les mocks globaux (AsyncStorage, Expo Router, safe area, icônes) sont dans `jest.setup.ts`.
+- **Couverture** : `npm run test:coverage`. Seuils globaux dans `package.json` (95 % instructions, lignes et fonctions, 90 % branches), vérifiés par la CI. Les restes du template Expo (`components/`, `hooks/`, `constants/`, `app/modal.tsx`) sont exclus.
+- **Correctif de bug** : écrire d'abord un test qui échoue, puis corriger. Un bug connu mais pas encore corrigé est décrit par un `it.failing(...)` précédé d'un commentaire `BUG :` ; quand le correctif arrive, ce test devient rouge et on le passe en `it(...)`.
 - **Manuel** : lancer l'app (Expo Go ou émulateur) et dérouler le scénario des critères d'acceptation ; pour toute modification d'écran, vérifier aussi une partie déjà en cours (reprise depuis l'accueil).
 - Checklist de non-régression Skull King : créer une partie, saisir mises/plis/bonus sur 2 manches, quitter, reprendre, terminer, vérifier Historique et Statistiques.
 
@@ -127,7 +131,7 @@ Un commit = un changement cohérent qui passe lint, typecheck et tests. Le messa
 - Titre au format Conventional Commit (il devient le message du commit squashé).
 - Description selon `.github/pull_request_template.md` : contexte, changements, tests réalisés, impact données, captures si UI.
 - Ajouter une entrée sous `## [Unreleased]` du `CHANGELOG.md` pour tout `feat`, `fix` ou `perf`.
-- La CI (`.github/workflows/ci.yml`) doit être verte : lint, typecheck, tests, cohérence des versions.
+- La CI (`.github/workflows/ci.yml`) doit être verte : lint, typecheck, tests avec seuils de couverture, cohérence des versions.
 
 ## 8. Merger
 
@@ -162,7 +166,7 @@ Après déploiement : installer l'APK, dérouler la checklist de non-régression
 
 - [ ] Critères d'acceptation remplis et vérifiés dans l'app
 - [ ] `npm run lint`, `npm run typecheck`, `npm test` verts
-- [ ] Tests ajoutés pour toute logique dans `src/utils/`
+- [ ] Tests ajoutés pour toute logique dans `src/utils/` et pour les écrans / composants modifiés, seuils de couverture respectés
 - [ ] Parties et statistiques déjà enregistrées toujours lisibles
 - [ ] Revue `code-reviewer` faite, remarques bloquantes traitées
 - [ ] `CHANGELOG.md` (`[Unreleased]`) et docs concernées à jour
