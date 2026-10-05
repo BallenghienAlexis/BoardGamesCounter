@@ -49,3 +49,6 @@ app-example
 # Claude Code (local settings)
 .claude/settings.local.json
 CLAUDE.local.md
+
+# Jest
+coverage/
