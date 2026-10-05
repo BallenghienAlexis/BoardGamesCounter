@@ -19,7 +19,9 @@ New entries go under `[Unreleased]`; see `docs/WORKFLOW.md`.
 
 ### Changed
 - `npm run validate` now fails on lint errors, failing tests and version mismatch
-- APK build workflow: Node 20, waits on `eas build --wait`, checks the tag matches `app.json`, can create the GitHub Release
+- CI and APK build workflows use Node 22 (Node 20 is end-of-life)
+- Expo SDK 54 packages aligned with `npx expo install --fix` (`expo-doctor` passes)
+- APK build workflow: waits on `eas build --wait`, checks the tag matches `app.json`, can create the GitHub Release
 
 ### Removed
 - Overlapping build docs (`QUICKSTART.md`, `BUILD_STRATEGY.md`, `GITHUB_SETUP.md`, `IMPLEMENTATION_READY.md`, `IMPLEMENTATION_SUMMARY.md`, `ANDROID_BUILD.md`), replaced by `docs/DEPLOYMENT.md` and `docs/ANDROID_LOCAL_BUILD.md`

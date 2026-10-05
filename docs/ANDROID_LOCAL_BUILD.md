@@ -4,8 +4,8 @@
 
 ## Pré-requis
 
-- Node.js 20 LTS ou plus récent.
-- JDK 17 (fourni avec Android Studio).
+- Node.js 22 LTS ou plus récent (Expo SDK 54 exige au moins 20.19, et Node 20 n'est plus maintenu).
+- JDK 17 ou 21 (le JBR fourni avec Android Studio), pointé par `JAVA_HOME`. Gradle 8 ne démarre pas avec un JDK 25.
 - Android Studio, avec un SDK Android récent et les Build-Tools.
 - Variable d'environnement `ANDROID_HOME` (PowerShell) :
 

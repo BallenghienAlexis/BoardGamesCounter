@@ -21,7 +21,7 @@ Compteur de scores pour jeux de société, pensé pour **Skull King** (modes bas
 
 ## 🚀 Démarrage
 
-Pré-requis : Node.js 20+.
+Pré-requis : Node.js 22 LTS.
 
 ```bash
 npm install

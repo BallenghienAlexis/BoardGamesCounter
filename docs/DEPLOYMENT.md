@@ -66,7 +66,7 @@ Pour re-taguer après un échec : `git tag -d vX.Y.Z && git push origin :refs/ta
 ## Corrections apportées par rapport aux anciens documents
 
 - Les builds **ne sont pas illimités et gratuits** : GitHub Actions ne fait que piloter `eas build`, qui compile sur les serveurs Expo et consomme le quota EAS à chaque exécution.
-- Node 18 n'est plus supporté par Expo SDK 54 : les workflows utilisent Node 20.
+- Node 18 n'est plus supporté par Expo SDK 54 : les workflows utilisent Node 22 (Node 20 n'est plus maintenu).
 - L'ancien workflow ne pouvait pas créer de Release (`contents: read`) et contenait des étapes de commentaire de PR qui échouaient hors PR.
 - `npm install -g expo-cli` est obsolète : utiliser `npx expo` et `npx eas-cli` (ou `npm i -g eas-cli`).
 - `expo run:android` sans `--variant release` produit un build debug.
