@@ -1,0 +1,40 @@
+name: CI
+
+# Vérifications rapides sur chaque PR et chaque push sur master.
+# Ne consomme aucun build EAS.
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint, typecheck, tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test -- --ci
+
+      - name: Version consistency (package.json = app.json)
+        run: |
+          node -e "const p=require('./package.json').version,a=require('./app.json').expo.version;if(p!==a){console.error('package.json '+p+' != app.json '+a);process.exit(1)}"

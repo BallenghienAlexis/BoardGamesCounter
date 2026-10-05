@@ -1,0 +1,10 @@
+version: 2
+updates:
+  # Les dépendances npm suivent le SDK Expo : elles sont mises à jour
+  # manuellement (agent dependency-upgrader), pas par Dependabot.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
