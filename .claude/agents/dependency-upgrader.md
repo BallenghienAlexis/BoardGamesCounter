@@ -14,7 +14,7 @@ Le skill `upgrading-expo` est préchargé ; ses fichiers `references/` sont dans
 
 ## Types de mise à jour
 
-1. **Alignement Expo** (patch, faible risque) : `npx expo install --check`, puis `npx expo install --fix`. Ex. connu : `react-native-svg` est en avance sur la version attendue par le SDK (voir `docs/MAINTENANCE.md`).
+1. **Alignement Expo** (patch, faible risque) : `npx expo install --check`, puis `npx expo install --fix`.
 2. **Montée de SDK** (risque élevé, une PR dédiée `chore(deps): expo sdk NN`) :
    - lire les notes de version Expo (changelog officiel) et lister les ruptures qui concernent ce projet ;
    - `npx expo install expo@^NN.0.0 --fix` puis `npx expo-doctor` ;

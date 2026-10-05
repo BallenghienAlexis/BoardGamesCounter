@@ -20,7 +20,7 @@ Si une source web est consultée, indique l'URL ; si une règle est incertaine o
 
 - Mise 0 : ±10 × **cartes distribuées** (pas × plis).
 - Mise ≥ 1 ratée : −10 × écart ; aucun point de mise.
-- Bonus de capture et de 14 : dans ce projet ils s'appliquent même si la mise est ratée (choix explicite dans le code) ; vérifie que c'est toujours voulu et documenté.
+- Bonus de capture et de 14 : dans ce projet ils s'appliquent même si la mise est ratée (décision confirmée le 2026-10-05, voir `docs/MAINTENANCE.md`) ; ne pas le signaler comme un écart.
 - Butin : +20 pour chacun des deux joueurs, seulement si les deux ont réussi leur mise ; l'alliance est stockée chez les deux joueurs.
 - Extension : Second, Léviathan, cartes 7 (−5) et 8 (+5).
 - Rascal chevrotine : plein / moitié / rien selon l'écart 0 / 1 / ≥2, bonus compris ; boulet de canon : 15 × cartes si exact, sinon 0, et « vous devez également miser correctement pour gagner des points bonus ».
