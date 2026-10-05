@@ -27,8 +27,11 @@ src/
     ├── SkullKingRules.ts    # ⚠️ Calcul des scores : cœur métier, testé
     ├── StatsService.ts      # Agrégation des statistiques
     ├── StorageService.ts    # Wrapper AsyncStorage avec repli mémoire
-    └── __tests__/           # Tests unitaires Jest
+    └── __tests__/           # Tests unitaires Jest (aussi dans contexts/ et components/)
 components/, hooks/, constants/  # Reste du template Expo (themed-*, haptic-tab…)
+__tests__/app/               # Tests des écrans (même arborescence que app/)
+test-utils/                  # Outils de test : providers, fixtures, router factice
+jest.setup.ts                # Mocks globaux Jest (AsyncStorage, Expo Router, icônes…)
 docs/                        # Architecture, workflow, déploiement, maintenance, plans
 └── rules/skull-king/        # Livret officiel Skull King (base + extension), MD + PDF
 scripts/validate-build.js    # Validation avant build (tsc, lint, tests, versions)

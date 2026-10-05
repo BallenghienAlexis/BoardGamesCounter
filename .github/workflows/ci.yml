@@ -32,8 +32,8 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Unit tests
-        run: npm test -- --ci
+      - name: Tests and coverage thresholds
+        run: npm run test:coverage -- --ci
 
       - name: Version consistency (package.json = app.json)
         run: |
