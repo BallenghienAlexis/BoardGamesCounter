@@ -231,6 +231,12 @@ describe('calculateRascalScore - bonuses and butin', () => {
     const result = calculateRascalScore(2, 2, 4, { card14Black: 1 }, true);
     expect(result).toEqual({ miseScore: 60, bonusScore: 20, totalScore: 80 });
   });
+
+  it('gives no bonus on a boulet de canon miss, even off by one (rulebook)', () => {
+    const bets = { a: 2, b: 1 };
+    const result = calculateRascalScore(2, 3, 4, { card14Black: 1, ...alliance }, true, true, 'a', bets, { a: 3, b: 1 });
+    expect(result).toEqual({ miseScore: 0, bonusScore: 0, totalScore: 0 });
+  });
 });
 
 describe('missing bonus values', () => {
