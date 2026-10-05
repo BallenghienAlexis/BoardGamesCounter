@@ -94,7 +94,7 @@ Tous les accès passent par `storageService` (`src/utils/StorageService.ts`), qu
 | Extension : Second capturé / Léviathan / 8 / 7 | +30 / +20 / +5 / −5 |
 | Butin (alliance) | +20 pour **chacun** des deux joueurs, si **les deux** ont réussi leur mise |
 
-Les bonus (hors butin) s'appliquent même si la mise est ratée.
+Les bonus (hors butin) s'appliquent même si la mise est ratée : choix de table confirmé le 2026-10-05 (voir `docs/MAINTENANCE.md`).
 
 - **Incrémental** : +1 si mise exacte, −1 sinon.
 - **Rascal chevrotine** : 10 × cartes si exact, moitié si écart de 1, 0 au-delà ; bonus pleins / moitié / nuls selon le même écart.

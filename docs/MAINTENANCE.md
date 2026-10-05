@@ -16,8 +16,6 @@ Relevée lors de l'audit du 2026-10-05. Chaque point se traite dans sa propre PR
 
 | Gravité | Sujet | Détail | Action proposée |
 |---|---|---|---|
-| ❓ À confirmer | Bonus sans mise réussie | `calculateSkullKingScore` ajoute les bonus de capture et de 14 même si la mise est ratée (choix du CHANGELOG 1.1.1). Le livret français (`docs/rules/skull-king/`) dit que « vous ne gagnez des points que si vous misez correctement » sans le préciser pour les bonus ; l'édition anglaise ne les accorde qu'en cas de mise réussie. | Décider de la règle voulue ; si changement, passer par `skull-king-rules-expert` et mettre à jour les tests. |
-| Moyenne | Version de `react-native-svg` | `^15.15.5` installé, `15.12.1` attendu par Expo SDK 54 (`npx expo install --check`). | `npx expo install react-native-svg` puis tester les graphiques. |
 | Moyenne | `SafeAreaView` de `react-native` | Utilisé dans `app/[gameId].tsx`, `app/skull-king/index.tsx`, `src/components/GameTypeSelector.tsx` ; déprécié et inefficace sur Android edge-to-edge. | Remplacer par `react-native-safe-area-context`. |
 | Moyenne | Écrans volumineux | `app/skull-king/[gameId].tsx` (≈ 700 lignes), `app/(tabs)/index.tsx` (≈ 680), `app/skull-king/index.tsx` (≈ 620). | Extraire composants et logique dans `src/components/` et `src/utils/` (testables). |
 | Basse | Typage | ≈ 27 occurrences de `any` dans `app/` et `src/`. | Typer progressivement lors des modifications. |
@@ -26,3 +24,11 @@ Relevée lors de l'audit du 2026-10-05. Chaque point se traite dans sa propre PR
 | Basse | Skills tiers | Déplacés de `.agents/skills/` vers `.claude/skills/` (seul dossier lu par Claude Code) et réduits aux 8 utiles au projet. Un outil de type autoskills relancé les réinstallerait dans `.agents/`. | Mettre à jour à la main depuis leur dépôt source (`skills-lock.json`). |
 | Basse | Licence | Le README annonçait MIT sans fichier `LICENSE`. | Ajouter un `LICENSE` si le projet doit être sous licence MIT. |
 | Basse | Mises à jour OTA | `expo-updates` installé et configuré dans `app.json`, mais sans `channel` dans `eas.json`. | Configurer (voir `docs/DEPLOYMENT.md`) ou retirer la dépendance. |
+
+## Décisions prises
+
+| Date | Sujet | Décision |
+|---|---|---|
+| 2026-10-05 | Bonus avec une mise ratée | Conservés comme depuis la 1.1.1 : en mode Skull King, les bonus de 14 et de capture comptent même si la mise est ratée (seul le butin exige deux mises réussies). Choix de table assumé, différent de l'édition anglaise du livret. |
+| 2026-10-05 | Bonus en boulet de canon | Corrigé (PR #8) : mise exacte obligatoire, conformément au livret. |
+| 2026-10-05 | `react-native-svg` | Aligné sur la version attendue par Expo SDK 54 (PR #2). |
