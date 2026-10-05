@@ -124,3 +124,96 @@ describe('resetStats', () => {
     expect(warn).toHaveBeenCalledWith('Could not reset stats:', expect.any(Error));
   });
 });
+
+describe('recording each game once', () => {
+  it('ignores a game that was already recorded', async () => {
+    await statsService.recordGameResult('g1', 'base', [result('a', 100, true)]);
+    await statsService.recordGameResult('g1', 'base', [result('a', 100, true)]);
+    const stats = await statsService.getStats();
+    expect(stats.totalGamesPlayed).toBe(1);
+    expect(stats.playerStats.a.totalGames).toBe(1);
+    expect(stats.recordedGameIds).toEqual(['g1']);
+  });
+});
+
+describe('stats stored by versions ≤ 1.2.7', () => {
+  const legacyEntry = (playerId: string, playerName: string, games: number, wins: number, totalScore: number, best: number, worst: number) => ({
+    playerId,
+    playerName,
+    totalGames: games,
+    wins,
+    losses: games - wins,
+    totalScore,
+    avgScore: totalScore / games,
+    bestScore: best,
+    worstScore: worst,
+    winRate: (wins / games) * 100,
+  });
+
+  // Forme réelle produite par la 1.2.7 : clés positionnelles, sans recordedGameIds
+  const legacy = {
+    totalGamesPlayed: 3,
+    favoriteMode: 'base',
+    stats: {
+      base: {
+        mode: 'base',
+        totalGames: 3,
+        totalPlayers: 5,
+        playerStats: { player_0: legacyEntry('player_0', 'Alexis', 3, 2, 300, 150, 50) },
+      },
+    },
+    playerStats: {
+      player_0: legacyEntry('player_0', 'Alexis', 3, 2, 300, 150, 50),
+      player_1: legacyEntry('player_1', 'Alban', 2, 1, 100, 80, 20),
+    },
+  };
+
+  it('re-keys positional ids by player name', async () => {
+    await AsyncStorage.setItem(KEY, JSON.stringify(legacy));
+    const stats = await statsService.getStats();
+    expect(Object.keys(stats.playerStats)).toEqual(['Alexis', 'Alban']);
+    expect(stats.playerStats.Alexis).toMatchObject({ playerId: 'Alexis', totalGames: 3, wins: 2 });
+    expect(Object.keys(stats.stats.base.playerStats)).toEqual(['Alexis']);
+  });
+
+  it('merges a legacy entry with the new entry of the same person', async () => {
+    await AsyncStorage.setItem(KEY, JSON.stringify(legacy));
+    await statsService.recordGameResult('new', 'base', [
+      { ...result('Alexis', 10, false), playerName: 'Alexis' },
+    ]);
+    const alexis = (await statsService.getStats()).playerStats.Alexis;
+    expect(alexis).toMatchObject({ totalGames: 4, wins: 2, losses: 2, totalScore: 310, bestScore: 150, worstScore: 10, winRate: 50 });
+    expect(alexis.avgScore).toBeCloseTo(77.5);
+  });
+
+  it('merges two legacy entries that now share a name', async () => {
+    await AsyncStorage.setItem(
+      KEY,
+      JSON.stringify({ ...legacy, playerStats: { player_0: legacy.playerStats.player_0, Alexis: legacyEntry('Alexis', 'Alexis', 1, 0, 40, 40, 40) } })
+    );
+    const alexis = (await statsService.getStats()).playerStats.Alexis;
+    expect(alexis).toMatchObject({ totalGames: 4, wins: 2, losses: 2, totalScore: 340, worstScore: 40 });
+  });
+
+  it('is idempotent and keeps non positional ids', async () => {
+    await AsyncStorage.setItem(KEY, JSON.stringify({ ...legacy, playerStats: { custom: legacyEntry('custom', 'Zoé', 1, 1, 10, 10, 10) } }));
+    const once = await statsService.getStats();
+    await AsyncStorage.setItem(KEY, JSON.stringify(once));
+    const twice = await statsService.getStats();
+    expect(twice).toEqual(once);
+    expect(Object.keys(twice.playerStats)).toEqual(['custom']);
+  });
+
+  it('tolerates missing sections and nameless entries', async () => {
+    await AsyncStorage.setItem(
+      KEY,
+      JSON.stringify({ totalGamesPlayed: 0, favoriteMode: null, stats: { base: { mode: 'base', totalGames: 0, totalPlayers: 0 } }, playerStats: { player_3: { ...legacyEntry('player_3', '', 0, 0, 0, 0, 0) } } })
+    );
+    const stats = await statsService.getStats();
+    expect(stats.stats.base.playerStats).toEqual({});
+    expect(Object.keys(stats.playerStats)).toEqual(['player_3']);
+
+    await AsyncStorage.setItem(KEY, JSON.stringify({ totalGamesPlayed: 0, favoriteMode: null }));
+    expect((await statsService.getStats()).playerStats).toEqual({});
+  });
+});

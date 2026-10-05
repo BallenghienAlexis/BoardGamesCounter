@@ -4,7 +4,7 @@ import { Line } from 'react-native-svg';
 import GameEndScreen from '@/app/skull-king/game-end';
 import { flushAsync, renderWithGame, renderWithProviders } from '@/test-utils/render';
 import { mockRouter } from '@/test-utils/router';
-import { makeGame, makeRound } from '@/test-utils/fixtures';
+import { makeConfig, makeGame, makeRound } from '@/test-utils/fixtures';
 import { statsService } from '@/src/utils/StatsService';
 
 const finished = makeGame({
@@ -14,6 +14,8 @@ const finished = makeGame({
     { id: 'player_1', name: 'Bob' },
     { id: 'ghost_barbe_grise', name: 'Fantôme de Barbe Grise' },
   ],
+  // 2 manches jouées sur 2 : partie terminée
+  config: makeConfig({ cardsPerRound: [1, 2] }),
   currentRound: 3,
   rounds: [makeRound(1, { player_0: 20, player_1: -10 }), makeRound(2, { player_0: -40, player_1: 30 })],
   playerScores: { player_0: -20, player_1: 20 },
@@ -61,6 +63,13 @@ describe('GameEndScreen', () => {
     jest.restoreAllMocks();
   });
 
+  it('does not record a game that is not finished', async () => {
+    const record = jest.spyOn(statsService, 'recordGameResult');
+    await renderWithGame(<GameEndScreen />, { ...finished, currentRound: 2 });
+    expect(record).not.toHaveBeenCalled();
+    record.mockRestore();
+  });
+
   it('skips the chart for a game without rounds', async () => {
     await renderWithGame(<GameEndScreen />, { ...finished, rounds: [] });
     expect(screen.queryByText('📈 Évolution de la Partie')).toBeNull();
@@ -80,10 +89,9 @@ describe('GameEndScreen', () => {
     expect(mockRouter.replace).toHaveBeenCalledWith('/skull-king/game-setup');
   });
 
-  // BUG : la partie est enregistrée à chaque changement de gameState. « Nouvelle Partie »
-  // remplace l'état avant de quitter l'écran, ce qui enregistre une seconde partie
-  // (la nouvelle, à 0 point) dans les statistiques.
-  it.failing('records the finished game only once when starting a new game', async () => {
+  // Régression : « Nouvelle Partie » remplace l'état avant de quitter l'écran ; la nouvelle
+  // partie (à 0 point) ne doit pas être enregistrée.
+  it('records the finished game only once when starting a new game', async () => {
     const record = jest.spyOn(statsService, 'recordGameResult');
     await renderWithGame(<GameEndScreen />, finished);
     fireEvent.press(screen.getByText('Nouvelle Partie'));
@@ -91,10 +99,9 @@ describe('GameEndScreen', () => {
     expect(record).toHaveBeenCalledTimes(1);
   });
 
-  // BUG : les identifiants de joueurs sont positionnels (player_0, player_1…), et les
-  // statistiques sont indexées par identifiant. Deux personnes différentes placées au même
-  // rang dans deux parties sont fusionnées (et gardent le nom de la première).
-  it.failing('keeps separate statistics for different people', async () => {
+  // Régression : les ids de joueurs sont positionnels (player_0…) ; les stats sont
+  // indexées par nom pour ne pas fusionner deux personnes placées au même rang.
+  it('keeps separate statistics for different people', async () => {
     const first = await renderWithGame(<GameEndScreen />, finished);
     first.unmount();
     const other = { ...finished, gameId: '901', players: [{ id: 'player_0', name: 'Zoé' }, { id: 'player_1', name: 'Yann' }] };
