@@ -72,18 +72,13 @@ describe('Generic counter screen', () => {
     expect(mockRouter.back).toHaveBeenCalledTimes(1);
   });
 
-  it('resets every score with "Nouvelle manche"', async () => {
-    await renderGame();
-    fireEvent.press(await screen.findByText('Nouvelle manche'));
-    fireEvent.press(screen.getByText('Score'));
-    expect(screen.getAllByText('0')).toHaveLength(2);
-  });
-
-  // BUG : le bouton « Nouvelle manche » appelle resetGame(), qui remet la manche à 1
-  // au lieu de l'incrémenter (addRound existe mais n'est pas utilisé).
-  it.failing('increments the round number with "Nouvelle manche"', async () => {
+  // Régression : le bouton remettait la manche à 1 et effaçait les scores
+  it('increments the round number and keeps scores with "Nouvelle manche"', async () => {
     await renderGame();
     fireEvent.press(await screen.findByText('Nouvelle manche'));
     expect(screen.getByText('Manche 4')).toBeTruthy();
+    fireEvent.press(screen.getByText('Score'));
+    expect(screen.getByText('30')).toBeTruthy();
+    expect(screen.getByText('10')).toBeTruthy();
   });
 });

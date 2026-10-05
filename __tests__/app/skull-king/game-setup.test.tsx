@@ -50,20 +50,17 @@ describe('GameSetupScreen', () => {
     expect(await screen.findByText('🎲 Mode Rascal - Système Équilibré')).toBeTruthy();
     expect(screen.getByText('🎯 Niveaux de Précision')).toBeTruthy();
     expect(screen.getByText('👻 Fantôme de Barbe Grise (2 joueurs)')).toBeTruthy();
-    // Pas de libellé dédié : le mode brut est affiché
-    expect(screen.getByText('rascal')).toBeTruthy();
+    expect(screen.getByText('Mode Rascal')).toBeTruthy();
   });
 
-  // BUG : « rascal » manque dans gameModeNames, la carte de règles affiche « Mode: » sans nom.
-  it.failing('names the Rascal mode in the rules card', async () => {
+  it('names the Rascal mode in the rules card', async () => {
     const config = makeConfig({ mode: 'rascal', scoringSystem: 'rascal' });
     await renderWithGame(<GameSetupScreen />, makeGame({ config }));
     expect(await screen.findByText('📋 Mode: Mode Rascal')).toBeTruthy();
   });
 
-  // BUG : la progression affiche la dernière valeur de cardsPerRound, soit « 1 à 1 cartes »
-  // pour les modes qui redescendent (extension, incrémental, Rascal).
-  it.failing('shows the maximum number of cards for a rising then falling game', async () => {
+  // Les modes qui montent puis redescendent finissent à 1 carte : afficher le maximum
+  it('shows the maximum number of cards for a rising then falling game', async () => {
     const config = makeConfig({ mode: 'incremental', cardsPerRound: [1, 2, 3, 4, 5, 4, 3, 2, 1] });
     await renderWithGame(<GameSetupScreen />, makeGame({ config }));
     expect(await screen.findByText(/1 à 5 cartes par manche/)).toBeTruthy();

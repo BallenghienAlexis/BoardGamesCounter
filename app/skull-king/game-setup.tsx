@@ -137,6 +137,7 @@ export default function GameSetupScreen() {
     'base': 'Jeu de Base',
     'base-extension': 'Jeu de Base + Extension',
     'incremental': 'Mode Incremental',
+    'rascal': 'Mode Rascal',
   };
 
   return (
@@ -196,7 +197,7 @@ export default function GameSetupScreen() {
             <Text style={styles.ruleTitle}>🎲 Manches & Cartes</Text>
             <Text style={styles.ruleText}>
               {gameState.config.cardsPerRound.length} manches{'\n'}
-              Progression: 1 à {gameState.config.cardsPerRound[gameState.config.cardsPerRound.length - 1]} cartes par manche
+              Progression: 1 à {Math.max(...gameState.config.cardsPerRound)} cartes par manche
             </Text>
           </View>
 

@@ -161,9 +161,8 @@ describe('HomeScreen - new game', () => {
     expect(game.config.twoPlayerVariant).toBe(false);
   });
 
-  // BUG probable : handlePlayersSelected ne remet pas showPlayerSetup à false. La sélection
-  // des joueurs reste ouverte sous l'écran de configuration et au retour sur l'accueil.
-  it.failing('closes the player selection once the game is created', async () => {
+  // Régression : la sélection restait ouverte sous l'écran de configuration
+  it('closes the player selection once the game is created', async () => {
     await startVariant('Jeu de Base', ['Alban', 'Alexis', 'Quentin']);
     await createdGame();
     expect(screen.queryByText('Sélectionner les Joueurs')).toBeNull();

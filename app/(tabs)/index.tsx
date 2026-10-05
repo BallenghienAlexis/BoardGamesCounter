@@ -137,6 +137,7 @@ export default function HomeScreen() {
 
    const handlePlayersSelected = (players: { id: string; name: string }[]) => {
      if (!selectedGameMode) return;
+     setShowPlayerSetup(false);
 
      // If exactly 2 players, ask about 2-player ghost variant
      if (players.length === 2) {
