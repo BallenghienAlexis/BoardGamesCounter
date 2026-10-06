@@ -15,6 +15,7 @@ New entries go under `[Unreleased]`; see `docs/WORKFLOW.md`.
 - Tests for contexts, components and every screen (React Native Testing Library), with coverage thresholds checked in CI (`npm run test:coverage`)
 
 ### Fixed
+- Screen tests no longer time out on a cold Jest cache (CI): test timeout raised from 5 s to 30 s
 - Statistics and Skull King screens no longer reload their data in an endless loop while displayed
 - Statistics are kept per person (by name) instead of per seat: two different players in the same seat are no longer merged; stats saved by older versions are re-keyed by name when read
 - A finished game is recorded only once in the statistics ("Nouvelle Partie" no longer records an extra game at 0 points)
